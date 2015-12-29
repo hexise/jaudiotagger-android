@@ -181,13 +181,10 @@ public class MP3File extends AudioFile
             {
                 fis = new FileInputStream(file);
                 fc = fis.getChannel();
-                bb = fc.map(FileChannel.MapMode.READ_ONLY,0,startByte);
-            }
-            //#JAUDIOTAGGER-419:If reading networked file map can fail so just copy bytes instead
-            catch(IOException ioe)
-            {
-                bb =  ByteBuffer.allocate(startByte);
-                fc.read(bb,0);
+                // avoid using fc.map method since it does not work on Android ICS and JB. Bug report: https://code.google.com/p/android/issues/detail?id=53637
+                // bb = fc.map(FileChannel.MapMode.READ_ONLY,0,startByte);
+                bb = ByteBuffer.allocate(startByte);
+                fc.read(bb, 0);
             }
             finally
             {

@@ -56,6 +56,8 @@ For more information about Jaudiotagger, please refer to this link: http://www.j
 
    Reference to sun.nio.ch.DirectBuffer has been fixed.
    
+   Fix FileChannel.map() error related to [Android bug 53637](https://code.google.com/p/android/issues/detail?id=53637), returned java.nio.MappedByteBufferAdapter does not work well on Android IceCreamSandwich and JellyBean. Use ByteBuffer.allocate() instead.
+   
 - org.jaudiotagger.logging.LogFormatter:
 
    This class is removed since it is unnecessary for Android platform.
