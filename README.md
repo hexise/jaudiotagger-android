@@ -61,6 +61,10 @@ For more information about Jaudiotagger, please refer to this link: http://www.j
 - org.jaudiotagger.logging.LogFormatter:
 
    This class is removed since it is unnecessary for Android platform.
+
+- org.jaudiotagger.tag.reference.GenreTypes
+
+   Support genres 148–191 which were added in Winamp 5.6.
    
 <h2>License</h2>
 
