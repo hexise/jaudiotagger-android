@@ -10,7 +10,7 @@ The compiled JAR library works on Android platform, has been tested on API level
 
 The source code is based on Jaudiotagger library version 2.2.6.
 
-Jaudiotagger java library version 2.2.6 is build on JDK 1.8 and use lots of nio features, which are not compatible with Android version lower than API level 26.
+Jaudiotagger library version 2.2.6 is build on JDK 1.8 and uses lots of nio features, which are not compatible with Android version lower than API level 26.
 
 This Jaudiotagger library changes all incompatible parts with compatible API calls, which can compile and run on Android API level 14 and above.
 
@@ -44,21 +44,20 @@ For more information about Jaudiotagger, please refer to this link: http://www.j
    
 - Java nio API calls are refactored:
 
-   The try-with-resources statements are replaced with streams, file channel and manually resource releasing.
-   Usages of java.nio.file.Path are replaced by java.io.File.
-   org.jaudiotagger.audio.generic.Permissions and its references are removed.
+   - The try-with-resources statements are replaced with streams, file channel and manually resource releasing.
+   - Usages of java.nio.file.Path are replaced by java.io.File.
+   - org.jaudiotagger.audio.generic.Permissions and its references are removed.
+   - References to java.nio.charset.StandardCharsets are replaced with org.jaudiotagger.StandardCharsets.
 
 - Java incompatible API change:
 
-   javax.imageio.* imports and calls are removed.
-   java.awt.* imports and calls are removed.
-   Character.isAlphabetic() call is changed since it is only available on Android 19.
+   - javax.imageio.* imports and calls are removed.
+   - java.awt.* imports and calls are removed.
+   - Character.isAlphabetic() call is changed since it is only available on Android 19.
 
 - org.jaudiotagger.logging.LogFormatter:
 
    This class is removed since it is unnecessary for Android platform.
-
-- References to java.nio.charset.StandardCharsets are replaced with org.jaudiotagger.StandardCharsets, since java.nio.charset.StandardCharsets is only available on Android 19+.
    
 <h2>License</h2>
 
