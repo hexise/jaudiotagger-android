@@ -6,7 +6,8 @@ import org.jaudiotagger.utils.EqualsUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 /**
@@ -20,13 +21,13 @@ public class PairedTextEncodedStringNullTerminated extends AbstractDataType
     public PairedTextEncodedStringNullTerminated(String identifier, AbstractTagFrameBody frameBody)
     {
         super(identifier, frameBody);
-        value = new PairedTextEncodedStringNullTerminated.ValuePairs();
+        value = new ValuePairs();
     }
 
     public PairedTextEncodedStringNullTerminated(TextEncodedStringSizeTerminated object)
     {
         super(object);
-        value = new PairedTextEncodedStringNullTerminated.ValuePairs();
+        value = new ValuePairs();
     }
 
     public PairedTextEncodedStringNullTerminated(PairedTextEncodedStringNullTerminated object)
@@ -197,6 +198,11 @@ public class PairedTextEncodedStringNullTerminated extends AbstractDataType
         return buffer.toByteArray();
     }
 
+    public String toString()
+    {
+        return value.toString();
+    }
+
     /**
      * This holds the values held by this PairedTextEncodedDataType, always held as pairs of values
      */
@@ -209,6 +215,10 @@ public class PairedTextEncodedStringNullTerminated extends AbstractDataType
             super();
         }
 
+        public void add(Pair pair)
+        {
+            mapping.add(pair);
+        }
         /**
          * Add String Data type to the value list
          *
@@ -249,6 +259,10 @@ public class PairedTextEncodedStringNullTerminated extends AbstractDataType
             for(Pair next:mapping)
             {
                 sb.append(next.getKey()+':'+next.getValue()+',');
+            }
+            if(sb.length()>0)
+            {
+                sb.setLength(sb.length() - 1);
             }
             return sb.toString();
         }

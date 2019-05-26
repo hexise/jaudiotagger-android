@@ -1,12 +1,12 @@
 package org.jaudiotagger.audio.real;
 
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.generic.Utils;
+
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.generic.Utils;
 
 public class RealChunk {
 
@@ -24,7 +24,7 @@ public class RealChunk {
 	public static RealChunk readChunk(RandomAccessFile raf)
 			throws CannotReadException, IOException {
 		final String id = Utils.readString(raf, 4);
-		final int size = Utils.readUint32AsInt(raf);
+		final int size = (int)Utils.readUint32(raf);
 		if (size < 8) {
 			throw new CannotReadException(
 					"Corrupt file: RealAudio chunk length at position "

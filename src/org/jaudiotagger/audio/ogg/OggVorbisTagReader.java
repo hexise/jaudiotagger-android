@@ -19,8 +19,8 @@
  */
 package org.jaudiotagger.audio.ogg;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.audio.ogg.util.OggPageHeader;
 import org.jaudiotagger.audio.ogg.util.VorbisHeader;
 import org.jaudiotagger.audio.ogg.util.VorbisPacketType;
@@ -134,7 +134,7 @@ public class OggVorbisTagReader
      */
     public boolean isVorbisCommentHeader(byte[] headerData)
     {
-        String vorbis = Utils.getString(headerData, VorbisHeader.FIELD_CAPTURE_PATTERN_POS, VorbisHeader.FIELD_CAPTURE_PATTERN_LENGTH, "ISO-8859-1");
+        String vorbis = new String(headerData, VorbisHeader.FIELD_CAPTURE_PATTERN_POS, VorbisHeader.FIELD_CAPTURE_PATTERN_LENGTH, StandardCharsets.ISO_8859_1);
         return !(headerData[VorbisHeader.FIELD_PACKET_TYPE_POS] != VorbisPacketType.COMMENT_HEADER.getType() || !vorbis.equals(VorbisHeader.CAPTURE_PATTERN));
     }
 
@@ -146,7 +146,7 @@ public class OggVorbisTagReader
      */
     public boolean isVorbisSetupHeader(byte[] headerData)
     {
-        String vorbis = Utils.getString(headerData, VorbisHeader.FIELD_CAPTURE_PATTERN_POS, VorbisHeader.FIELD_CAPTURE_PATTERN_LENGTH, "ISO-8859-1");
+        String vorbis = new String(headerData, VorbisHeader.FIELD_CAPTURE_PATTERN_POS, VorbisHeader.FIELD_CAPTURE_PATTERN_LENGTH, StandardCharsets.ISO_8859_1);
         return !(headerData[VorbisHeader.FIELD_PACKET_TYPE_POS] != VorbisPacketType.SETUP_HEADER.getType() || !vorbis.equals(VorbisHeader.CAPTURE_PATTERN));
     }
 
@@ -156,7 +156,7 @@ public class OggVorbisTagReader
      * @param startVorbisCommentPage
      * @param raf
      * @throws org.jaudiotagger.audio.exceptions.CannotReadException
-     * @throws java.io.IOException
+     * @throws IOException
      * @return
      */
     private byte[] convertToVorbisCommentPacket(OggPageHeader startVorbisCommentPage, RandomAccessFile raf) throws IOException, CannotReadException
@@ -214,7 +214,7 @@ public class OggVorbisTagReader
      * @param fileOffsetOfStartingOggPage
      * @param raf
      * @throws org.jaudiotagger.audio.exceptions.CannotReadException
-     * @throws java.io.IOException
+     * @throws IOException
      * @return
      */
     public byte[] convertToVorbisSetupHeaderPacket(long fileOffsetOfStartingOggPage, RandomAccessFile raf) throws IOException, CannotReadException
@@ -301,7 +301,7 @@ public class OggVorbisTagReader
      * @param fileOffsetOfStartingOggPage
      * @param raf
      * @throws org.jaudiotagger.audio.exceptions.CannotReadException
-     * @throws java.io.IOException
+     * @throws IOException
      * @return
      */
     public byte[] convertToVorbisSetupHeaderPacketAndAdditionalPackets(long fileOffsetOfStartingOggPage, RandomAccessFile raf) throws IOException, CannotReadException

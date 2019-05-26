@@ -1,7 +1,5 @@
 package org.jaudiotagger.audio.mp4;
 
-import org.jaudiotagger.utils.tree.DefaultMutableTreeNode;
-import org.jaudiotagger.utils.tree.DefaultTreeModel;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.NullBoxIdException;
 import org.jaudiotagger.audio.mp4.atom.Mp4BoxHeader;
@@ -9,7 +7,8 @@ import org.jaudiotagger.audio.mp4.atom.Mp4MetaBox;
 import org.jaudiotagger.audio.mp4.atom.Mp4StcoBox;
 import org.jaudiotagger.audio.mp4.atom.NullPadding;
 import org.jaudiotagger.logging.ErrorMessage;
-
+import org.jaudiotagger.utils.tree.DefaultMutableTreeNode;
+import org.jaudiotagger.utils.tree.DefaultTreeModel;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -40,18 +39,18 @@ public class Mp4AtomTree
     private DefaultTreeModel dataTree;
     private DefaultMutableTreeNode moovNode;
     private DefaultMutableTreeNode mdatNode;
-    private DefaultMutableTreeNode stcoNode;
     private DefaultMutableTreeNode ilstNode;
     private DefaultMutableTreeNode metaNode;
     private DefaultMutableTreeNode tagsNode;
     private DefaultMutableTreeNode udtaNode;
     private DefaultMutableTreeNode hdlrWithinMdiaNode;
     private DefaultMutableTreeNode hdlrWithinMetaNode;
+    private List<DefaultMutableTreeNode> stcoNodes = new ArrayList<DefaultMutableTreeNode>();
     private List<DefaultMutableTreeNode> freeNodes = new ArrayList<DefaultMutableTreeNode>();
     private List<DefaultMutableTreeNode> mdatNodes = new ArrayList<DefaultMutableTreeNode>();
     private List<DefaultMutableTreeNode> trakNodes = new ArrayList<DefaultMutableTreeNode>();
 
-    private Mp4StcoBox stco;
+    private List<Mp4StcoBox> stcos = new ArrayList<Mp4StcoBox>();
     private ByteBuffer moovBuffer; //Contains all the data under moov
     private Mp4BoxHeader moovHeader;
 
@@ -90,7 +89,7 @@ public class Mp4AtomTree
      * @param raf
      * @param closeExit false to keep randomfileacces open, only used when randomaccessfile already being used
      * @return
-     * @throws java.io.IOException
+     * @throws IOException
      * @throws org.jaudiotagger.audio.exceptions.CannotReadException
      */
     public DefaultTreeModel buildTree(RandomAccessFile raf, boolean closeExit) throws IOException, CannotReadException
@@ -314,11 +313,8 @@ public class Mp4AtomTree
                 }
                 else if (boxHeader.getId().equals(Mp4AtomIdentifier.STCO.getFieldName()))
                 {
-                    if (stco == null)
-                    {
-                        stco = new Mp4StcoBox(boxHeader, moovBuffer);
-                        stcoNode = newAtom;
-                    }
+                    stcos.add(new Mp4StcoBox(boxHeader, moovBuffer));
+                    stcoNodes.add(newAtom);
                 }
                 else if (boxHeader.getId().equals(Mp4AtomIdentifier.ILST.getFieldName()))
                 {
@@ -389,9 +385,9 @@ public class Mp4AtomTree
      *
      * @return
      */
-    public DefaultMutableTreeNode getStcoNode()
+    public List<DefaultMutableTreeNode> getStcoNodes()
     {
-        return stcoNode;
+        return stcoNodes;
     }
 
     /**
@@ -493,9 +489,9 @@ public class Mp4AtomTree
      *
      * @return
      */
-    public Mp4StcoBox getStco()
+    public List<Mp4StcoBox> getStcos()
     {
-        return stco;
+        return stcos;
     }
 
     /**

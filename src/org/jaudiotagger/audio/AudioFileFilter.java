@@ -20,8 +20,8 @@ package org.jaudiotagger.audio;
 
 import org.jaudiotagger.audio.generic.Utils;
 
-import java.io.FileFilter;
 import java.io.File;
+import java.io.FileFilter;
 
 /**
  * <p>This is a simple FileFilter that will only allow the file supported by this library.

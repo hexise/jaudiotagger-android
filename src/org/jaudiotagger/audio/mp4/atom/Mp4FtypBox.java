@@ -1,9 +1,9 @@
 package org.jaudiotagger.audio.mp4.atom;
 
 import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.generic.Utils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
@@ -34,6 +34,7 @@ public class Mp4FtypBox extends AbstractMp4Box
     {
         this.header = header;
         this.dataBuffer = dataBuffer;
+        this.dataBuffer.order(ByteOrder.BIG_ENDIAN);
     }
 
     public void processData() throws CannotReadException
@@ -49,10 +50,7 @@ public class Mp4FtypBox extends AbstractMp4Box
 
         }
         dataBuffer.position(dataBuffer.position() + MAJOR_BRAND_LENGTH);
-
-        majorBrandVersion = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + MAJOR_BRAND_VERSION_LENGTH - 1));
-        dataBuffer.position(dataBuffer.position() + MAJOR_BRAND_VERSION_LENGTH);
-
+        majorBrandVersion = dataBuffer.getInt();
         while ((dataBuffer.position() < dataBuffer.limit()) && (dataBuffer.limit() - dataBuffer.position() >= COMPATIBLE_BRAND_LENGTH))
         {
             decoder.onMalformedInput(CodingErrorAction.REPORT);

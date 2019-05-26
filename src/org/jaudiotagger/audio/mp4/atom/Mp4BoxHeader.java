@@ -18,15 +18,18 @@
  */
 package org.jaudiotagger.audio.mp4.atom;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.exceptions.InvalidBoxHeaderException;
 import org.jaudiotagger.audio.exceptions.NullBoxIdException;
 import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.logging.ErrorMessage;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
 /**
@@ -138,11 +141,11 @@ public class Mp4BoxHeader
         headerData.get(b);
         //Keep reference to copy of RawData
         dataBuffer = ByteBuffer.wrap(b);
+        dataBuffer.order(ByteOrder.BIG_ENDIAN);
 
-        //Calculate box size
-        this.length = Utils.getIntBE(b, OFFSET_POS, OFFSET_LENGTH - 1);
-        //Calculate box id
-        this.id = Utils.getString(b, IDENTIFIER_POS, IDENTIFIER_LENGTH, "ISO-8859-1");
+        //Calculate box size and id
+        this.length = dataBuffer.getInt();
+        this.id = Utils.readFourBytesAsChars(dataBuffer);
 
         logger.finest("Mp4BoxHeader id:"+id+":length:"+length);
         if (id.equals("\0\0\0\0"))
@@ -236,9 +239,9 @@ public class Mp4BoxHeader
     /**
      * @return UTF_8 (always used by Mp4)
      */
-    public String getEncoding()
+    public Charset getEncoding()
     {
-        return CHARSET_UTF_8;
+        return StandardCharsets.UTF_8;
     }
 
 
@@ -250,18 +253,18 @@ public class Mp4BoxHeader
      * if we are at the start of a child box even if it not the required box as long as the box we are
      * looking for is the same level (or the level above in some cases).
      *
-     * @param raf
+     * @param fc
      * @param id
-     * @throws java.io.IOException
+     * @throws IOException
      * @return
      */
-    public static Mp4BoxHeader seekWithinLevel(RandomAccessFile raf, String id) throws IOException
+    public static Mp4BoxHeader seekWithinLevel(FileChannel fc, String id) throws IOException
     {
-        logger.finer("Started searching for:" + id + " in file at:" + raf.getChannel().position());
+        logger.finer("Started searching for:" + id + " in file at:" + fc.position());
 
         Mp4BoxHeader boxHeader = new Mp4BoxHeader();
         ByteBuffer headerBuffer = ByteBuffer.allocate(HEADER_LENGTH);
-        int bytesRead = raf.getChannel().read(headerBuffer);
+        int bytesRead = fc.read(headerBuffer);
         if (bytesRead != HEADER_LENGTH)
         {
             return null;
@@ -270,21 +273,20 @@ public class Mp4BoxHeader
         boxHeader.update(headerBuffer);
         while (!boxHeader.getId().equals(id))
         {
-            logger.finer("Found:" + boxHeader.getId() + " Still searching for:" + id + " in file at:" + raf.getChannel().position());
+            logger.finer("Found:" + boxHeader.getId() + " Still searching for:" + id + " in file at:" + fc.position());
 
             //Something gone wrong probably not at the start of an atom so return null;
             if (boxHeader.getLength() < Mp4BoxHeader.HEADER_LENGTH)
             {
                 return null;
             }
-            int noOfBytesSkipped = raf.skipBytes(boxHeader.getDataLength());
-            logger.finer("Skipped:" + noOfBytesSkipped);
-            if (noOfBytesSkipped < boxHeader.getDataLength())
+            fc.position(fc.position() + boxHeader.getDataLength());
+            if (fc.position() > fc.size())
             {
                 return null;
             }
             headerBuffer.rewind();
-            bytesRead = raf.getChannel().read(headerBuffer);
+            bytesRead = fc.read(headerBuffer);
             logger.finer("Header Bytes Read:" + bytesRead);
             headerBuffer.rewind();
             if (bytesRead == Mp4BoxHeader.HEADER_LENGTH)
@@ -310,7 +312,7 @@ public class Mp4BoxHeader
      *
      * @param data
      * @param id
-     * @throws java.io.IOException
+     * @throws IOException
      * @return
      */
     public static Mp4BoxHeader seekWithinLevel(ByteBuffer data, String id) throws IOException
@@ -355,11 +357,20 @@ public class Mp4BoxHeader
     }
 
     /**
-     * @return location in file of the start of file header (i.e where the 4 byte length field starts)
+     * @return location in file of the start of atom  header (i.e where the 4 byte length field starts)
      */
     public long getFilePos()
     {
         return filePos;
+    }
+
+    /**
+     *
+     * @return location in file of the end of atom
+     */
+    public long getFileEndPos()
+    {
+        return filePos + length;
     }
 
     /**

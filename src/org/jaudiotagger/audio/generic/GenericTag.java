@@ -18,37 +18,45 @@
  */
 package org.jaudiotagger.audio.generic;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.*;
 import org.jaudiotagger.tag.images.Artwork;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 
 /**
- * This is a complete example implementation of
- * {@link AbstractTag} and it currenlty used to provide basic support to audio formats with only read tagging
- * ability such as Real or Wav files <br>
+ * This is a complete example implementation of  {@link AbstractTag}
  *
  * @author Raphaël Slinckx
  */
 public abstract class GenericTag extends AbstractTag
 {
-    private static EnumSet<FieldKey> supportedKeys;
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[]{};
+    protected static EnumSet<FieldKey> supportedKeys;
 
     static
     {
         supportedKeys = EnumSet.of(FieldKey.ALBUM,FieldKey.ARTIST,FieldKey.TITLE,FieldKey.TRACK,FieldKey.GENRE,FieldKey.COMMENT,FieldKey.YEAR);
     }
+
+
+    public static  EnumSet<FieldKey>  getSupportedKeys()
+    {
+        return supportedKeys;
+    }
+
     /**
      * Implementations of {@link TagTextField} for use with
      * &quot;ISO-8859-1&quot; strings.
      *
      * @author Raphaël Slinckx
      */
-    private class GenericTagTextField implements TagTextField
+    protected class GenericTagTextField implements TagTextField
     {
 
         /**
@@ -67,18 +75,14 @@ public abstract class GenericTag extends AbstractTag
          * @param fieldId        The identifier.
          * @param initialContent The string.
          */
-        public GenericTagTextField(String fieldId, String initialContent)
+        public GenericTagTextField(final String fieldId, final String initialContent)
         {
             this.id = fieldId;
             this.content = initialContent;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#copyContent(org.jaudiotagger.tag.TagField)
-         */
-        public void copyContent(TagField field)
+        @Override
+        public void copyContent(final TagField field)
         {
             if (field instanceof TagTextField)
             {
@@ -86,150 +90,104 @@ public abstract class GenericTag extends AbstractTag
             }
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagTextField#getContent()
-         */
+        @Override
         public String getContent()
         {
             return this.content;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagTextField#getEncoding()
-         */
-        public String getEncoding()
+        @Override
+        public Charset getEncoding()
         {
-            return "ISO-8859-1";
+            return StandardCharsets.ISO_8859_1;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#getId()
-         */
+        @Override
         public String getId()
         {
             return id;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#getRawContent()
-         */
+        @Override
         public byte[] getRawContent()
         {
-            return this.content == null ? new byte[]{} : Utils.getDefaultBytes(this.content, getEncoding());
+            return this.content == null ? EMPTY_BYTE_ARRAY : this.content.getBytes(getEncoding());
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#isBinary()
-         */
+        @Override
         public boolean isBinary()
         {
             return false;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#isBinary(boolean)
-         */
+        @Override
         public void isBinary(boolean b)
         {
             /* not supported */
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#isCommon()
-         */
+        @Override
         public boolean isCommon()
         {
             return true;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagField#isEmpty()
-         */
+        @Override
         public boolean isEmpty()
         {
-            return this.content.equals("");
+            return "".equals(this.content);
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagTextField#setContent(java.lang.String)
-         */
-        public void setContent(String s)
+        @Override
+        public void setContent(final String s)
         {
             this.content = s;
         }
 
-        /**
-         * (overridden)
-         *
-         * @see org.jaudiotagger.tag.TagTextField#setEncoding(java.lang.String)
-         */
-        public void setEncoding(String s)
+        @Override
+        public void setEncoding(final Charset s)
         {
             /* Not allowed */
         }
 
-        /**
-         * (overridden)
-         *
-         * @see java.lang.Object#toString()
-         */
+        @Override
         public String toString()
         {
             return getContent();
         }
     }
 
-    /**
-     * (overridden)
-     *
-     * @see org.jaudiotagger.audio.generic.AbstractTag#isAllowedEncoding(java.lang.String)
-     */
-    protected boolean isAllowedEncoding(String enc)
+    @Override
+    protected boolean isAllowedEncoding(final Charset enc)
     {
         return true;
     }
 
-    public TagField createField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException
+    @Override
+    public TagField createField(final FieldKey genericKey, final String... values) throws KeyNotFoundException, FieldDataInvalidException
     {
         if(supportedKeys.contains(genericKey))
         {
-            return new GenericTagTextField(genericKey.name(),value);
+            if (values == null || values[0] == null)
+            {
+                throw new IllegalArgumentException(ErrorMessage.GENERAL_INVALID_NULL_ARGUMENT.getMsg());
+            }
+            return new GenericTagTextField(genericKey.name(),values[0]);
         }
         else
         {
-            throw new UnsupportedOperationException(ErrorMessage.GENERIC_NOT_SUPPORTED.getMsg());
+            throw new UnsupportedOperationException(ErrorMessage.OPERATION_NOT_SUPPORTED_FOR_FIELD.getMsg(genericKey));
         }
     }
 
-    /**
-     * @param genericKey
-     * @return
-     * @throws KeyNotFoundException
-     */
-    public String getFirst(FieldKey genericKey) throws KeyNotFoundException
+    @Override
+    public String getFirst(final FieldKey genericKey) throws KeyNotFoundException
     {
         return getValue(genericKey, 0);
     }
 
-    public String getValue(FieldKey genericKey,int index) throws KeyNotFoundException
+    @Override
+    public String getValue(final FieldKey genericKey, final int index) throws KeyNotFoundException
     {
         if(supportedKeys.contains(genericKey))
         {
@@ -237,17 +195,12 @@ public abstract class GenericTag extends AbstractTag
         }
         else
         {
-            throw new UnsupportedOperationException(ErrorMessage.GENERIC_NOT_SUPPORTED.getMsg());
+            throw new UnsupportedOperationException(ErrorMessage.OPERATION_NOT_SUPPORTED_FOR_FIELD.getMsg(genericKey));
         }
     }
 
-    /**
-     * 
-     * @param genericKey The field id.
-     * @return
-     * @throws KeyNotFoundException
-     */
-    public List<TagField> getFields(FieldKey genericKey) throws KeyNotFoundException
+    @Override
+    public List<TagField> getFields(final FieldKey genericKey) throws KeyNotFoundException
     {
         List<TagField> list = fields.get(genericKey.name());
         if (list == null)
@@ -256,17 +209,15 @@ public abstract class GenericTag extends AbstractTag
         }
         return list;
     }
-    
-    public List<String> getAll(FieldKey genericKey) throws KeyNotFoundException
+
+    @Override
+    public List<String> getAll(final FieldKey genericKey) throws KeyNotFoundException
     {
         return super.getAll(genericKey.name());
     }
 
-    /**
-     * @param genericKey
-     * @throws KeyNotFoundException
-     */
-    public void deleteField(FieldKey genericKey) throws KeyNotFoundException
+    @Override
+    public void deleteField(final FieldKey genericKey) throws KeyNotFoundException
     {
         if(supportedKeys.contains(genericKey))
         {
@@ -274,16 +225,12 @@ public abstract class GenericTag extends AbstractTag
         }
         else
         {
-            throw new UnsupportedOperationException(ErrorMessage.GENERIC_NOT_SUPPORTED.getMsg());
+            throw new UnsupportedOperationException(ErrorMessage.OPERATION_NOT_SUPPORTED_FOR_FIELD.getMsg(genericKey));
         }
     }
 
-    /**
-     * @param genericKey
-     * @return
-     * @throws KeyNotFoundException
-     */
-    public TagField getFirstField(FieldKey genericKey) throws KeyNotFoundException
+    @Override
+    public TagField getFirstField(final FieldKey genericKey) throws KeyNotFoundException
     {
         if(supportedKeys.contains(genericKey))
         {
@@ -291,16 +238,18 @@ public abstract class GenericTag extends AbstractTag
         }
         else
         {
-            throw new UnsupportedOperationException(ErrorMessage.GENERIC_NOT_SUPPORTED.getMsg());
+            throw new UnsupportedOperationException(ErrorMessage.OPERATION_NOT_SUPPORTED_FOR_FIELD.getMsg(genericKey));
         }
     }
 
+    @Override
     public List<Artwork> getArtworkList()
     {
         return Collections.emptyList();
     }
 
-    public TagField createField(Artwork artwork) throws FieldDataInvalidException
+    @Override
+    public TagField createField(final Artwork artwork) throws FieldDataInvalidException
     {
         throw new UnsupportedOperationException(ErrorMessage.GENERIC_NOT_SUPPORTED.getMsg());
     }

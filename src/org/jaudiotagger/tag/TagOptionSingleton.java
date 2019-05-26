@@ -24,6 +24,9 @@
  */
 package org.jaudiotagger.tag;
 
+import org.jaudiotagger.audio.wav.WavOptions;
+import org.jaudiotagger.audio.wav.WavSaveOptions;
+import org.jaudiotagger.audio.wav.WavSaveOrder;
 import org.jaudiotagger.tag.id3.framebody.AbstractID3v2FrameBody;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyCOMM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTIPL;
@@ -34,6 +37,8 @@ import org.jaudiotagger.tag.options.PadNumberOption;
 import org.jaudiotagger.tag.reference.GenreTypes;
 import org.jaudiotagger.tag.reference.ID3V2Version;
 import org.jaudiotagger.tag.reference.Languages;
+import org.jaudiotagger.tag.vorbiscomment.VorbisAlbumArtistReadOptions;
+import org.jaudiotagger.tag.vorbiscomment.VorbisAlbumArtistSaveOptions;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,6 +46,68 @@ import java.util.LinkedList;
 
 public class TagOptionSingleton
 {
+    private boolean   isWriteWavForTwonky = false;
+
+    private WavOptions wavOptions = WavOptions.READ_ID3_ONLY;
+
+    public void setWavOptions(WavOptions wavOptions)
+    {
+        this.wavOptions = wavOptions;
+    }
+
+    public WavOptions getWavOptions()
+    {
+        return wavOptions;
+    }
+
+    private WavSaveOptions wavSaveOptions = WavSaveOptions.SAVE_BOTH;
+
+    public void setWavSaveOptions(WavSaveOptions wavSaveOptions)
+    {
+        this.wavSaveOptions = wavSaveOptions;
+    }
+
+    public WavSaveOptions getWavSaveOptions()
+    {
+        return wavSaveOptions;
+    }
+
+    private WavSaveOrder wavSaveOrder = WavSaveOrder.INFO_THEN_ID3;
+
+    public void setWavSaveOrder(WavSaveOrder wavSaveOrder)
+    {
+        this.wavSaveOrder = wavSaveOrder;
+    }
+
+    public WavSaveOrder getWavSaveOrder()
+    {
+        return wavSaveOrder;
+    }
+
+    private VorbisAlbumArtistSaveOptions vorbisAlbumArtistSaveOptions = VorbisAlbumArtistSaveOptions.WRITE_ALBUMARTIST;
+
+    public void setVorbisAlbumArtistSaveOptions(VorbisAlbumArtistSaveOptions vorbisAlbumArtistSaveOptions)
+    {
+        this.vorbisAlbumArtistSaveOptions = vorbisAlbumArtistSaveOptions;
+    }
+
+    public VorbisAlbumArtistSaveOptions getVorbisAlbumArtistSaveOptions()
+    {
+        return vorbisAlbumArtistSaveOptions;
+    }
+
+    private VorbisAlbumArtistReadOptions vorbisAlbumArtistReadOptions = VorbisAlbumArtistReadOptions.READ_ALBUMARTIST_THEN_JRIVER;
+
+    public void setVorbisAlbumArtistReadOptions(VorbisAlbumArtistReadOptions vorbisAlbumArtistReadOptions)
+    {
+        this.vorbisAlbumArtistReadOptions = vorbisAlbumArtistReadOptions;
+    }
+
+    public VorbisAlbumArtistReadOptions getVorbisAlbumArtisReadOptions()
+    {
+        return vorbisAlbumArtistReadOptions;
+    }
+
     /**
      *
      */
@@ -253,12 +320,6 @@ public class TagOptionSingleton
      */
     private PadNumberOption padNumberTotalLength = PadNumberOption.PAD_ONE_ZERO;
 
-    /**
-     * There are a couple of problems with the Java implementation on Google Android, enabling this value
-     * switches on Google workarounds
-     */
-    private boolean isAndroid = false;
-
     private boolean isAPICDescriptionITunesCompatible = false;
 
     /**
@@ -275,16 +336,31 @@ public class TagOptionSingleton
     private int playerCompatability=-1;
 
     /**
-     * max size of data to copy when copying audiodata from one file to another
+     * max size of data to copy when copying audiodata from one file to , default to 4mb
      */
-    private long writeChunkSize=5000000;
+    private long writeChunkSize= (4 * 1024 * 1024);
 
     private boolean isWriteMp4GenresAsText=false;
 
     private boolean isWriteMp3GenresAsText=false;
 
     private ID3V2Version id3v2Version = ID3V2Version.ID3_V23;
+    
+    /**
+     * Whether Files.isWritable should be used to check if a file can be written. In some
+     * cases, isWritable can return false negatives. 
+     */
+    private boolean checkIsWritable = false;
 
+    /**
+     * Preserve file identity if possible
+     */
+    private boolean preserveFileIdentity = true;
+
+    /**
+     * 
+     */
+    
     /**
      * Creates a new TagOptions datatype. All Options are set to their default
      * values
@@ -788,6 +864,9 @@ public class TagOptionSingleton
      */
     public void setToDefault()
     {
+        isWriteWavForTwonky = false;
+        wavOptions = WavOptions.READ_ID3_UNLESS_ONLY_INFO;
+        wavSaveOptions = WavSaveOptions.SAVE_BOTH;
         keywordMap = new HashMap<Class<? extends ID3v24FrameBody>, LinkedList<String>>();
         filenameTagSave = false;
         id3v1Save = true;
@@ -819,12 +898,13 @@ public class TagOptionSingleton
         truncateTextWithoutErrors = false;
         padNumbers = false;
         isAPICDescriptionITunesCompatible=false;
-        isAndroid = false;
         isEncodeUTF16BomAsLittleEndian = true;
         writeChunkSize=5000000;
         isWriteMp4GenresAsText=false;
         padNumberTotalLength = PadNumberOption.PAD_ONE_ZERO;
         id3v2Version = ID3V2Version.ID3_V23;
+        checkIsWritable = false;
+        preserveFileIdentity = false;
         //default all lyrics3 fields to save. id3v1 fields are individual
         // settings. id3v2 fields are always looked at to save.
         Iterator<String> iterator = Lyrics3v2Fields.getInstanceOf().getIdToValueMap().keySet().iterator();
@@ -1226,5 +1306,54 @@ public class TagOptionSingleton
     public void setAPICDescriptionITunesCompatible(boolean APICDescriptionITunesCompatible)
     {
         isAPICDescriptionITunesCompatible = APICDescriptionITunesCompatible;
+    }
+
+    /**
+     * Whether Files.isWritable should be used to check if a file can be written. In some
+     * cases, isWritable can return false negatives. 
+     */
+	public boolean isCheckIsWritable() {
+		return checkIsWritable;
+	}
+
+	public void setCheckIsWritable(boolean checkIsWritable) {
+		this.checkIsWritable = checkIsWritable;
+	}
+
+    /**
+     * <p>
+     *     If set to {@code true}, when writing, make an attempt to overwrite the existing file in-place
+     *     instead of first moving it out of the way and moving a temp file into its place.
+     * </p>
+     * <p>
+     *     Preserving the file identity has the advantage of preserving the creation time
+     *     as well as the Unix inode or Windows
+     *     <a href="https://msdn.microsoft.com/en-us/library/aa363788(v=vs.85).aspx">fileIndex</a>.
+     * </p>
+     *
+     * @return {@code true} or {@code false}. Default is {@code false}.
+     */
+    public boolean isPreserveFileIdentity() {
+        return preserveFileIdentity;
+    }
+
+    /**
+     * If set to {@code true}, when writing, make an attempt to preserve the file identity.
+     *
+     * @param preserveFileIdentity {@code true} or {@code false}
+     * @see #isPreserveFileIdentity()
+     */
+    public void setPreserveFileIdentity(final boolean preserveFileIdentity) {
+        this.preserveFileIdentity = preserveFileIdentity;
+    }
+
+    public boolean isWriteWavForTwonky()
+    {
+        return isWriteWavForTwonky;
+    }
+
+    public void setWriteWavForTwonky(boolean isWriteWavForTwonky)
+    {
+        this.isWriteWavForTwonky = isWriteWavForTwonky;
     }
 }

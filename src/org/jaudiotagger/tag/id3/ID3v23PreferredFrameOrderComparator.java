@@ -1,8 +1,8 @@
 package org.jaudiotagger.tag.id3;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.ArrayList;
 
 /**
  * Orders frame Ids so that the most important frames are writtne first
@@ -45,7 +45,7 @@ public class ID3v23PreferredFrameOrderComparator implements Comparator<String>
         frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_URL_COMMERCIAL);
         frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_LYRICIST);
         frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_MEDIA_TYPE);
-        frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_IPLS);
+        frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE);
         frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_LANGUAGE);
         frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_TITLE_SORT_ORDER_ITUNES);
         frameIdsInPreferredOrder.add(ID3v23Frames.FRAME_ID_V3_PLAYLIST_DELAY);

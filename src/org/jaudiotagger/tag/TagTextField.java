@@ -18,6 +18,8 @@
  */
 package org.jaudiotagger.tag;
 
+import java.nio.charset.Charset;
+
 /**
  * This interface extends the default field definition by methods for working
  * with human readable text.<br>
@@ -33,26 +35,26 @@ public interface TagTextField extends TagField
      *
      * @return Content
      */
-    public String getContent();
+    String getContent();
 
     /**
      * Returns the current used charset encoding.
      *
      * @return Charset encoding.
      */
-    public String getEncoding();
+    Charset getEncoding();
 
     /**
      * Sets the content of the field.
      *
      * @param content fields content.
      */
-    public void setContent(String content);
+    void setContent(String content);
 
     /**
      * Sets the charset encoding used by the field.
      *
      * @param encoding charset.
      */
-    public void setEncoding(String encoding);
+    void setEncoding(Charset encoding);
 }

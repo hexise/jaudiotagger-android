@@ -21,9 +21,11 @@ package org.jaudiotagger.audio.ogg;
 
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
+import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.audio.ogg.util.OggCRCFactory;
 import org.jaudiotagger.audio.ogg.util.OggPageHeader;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.id3.AbstractID3v1Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 
 import java.io.ByteArrayOutputStream;
@@ -447,16 +449,35 @@ public class OggVorbisTagWriter
         long startAudioWritten = rafTemp.getFilePointer();
 
         //TODO there is a risk we wont have enough memory to create these buffers
-        ByteBuffer bb       = ByteBuffer.allocate((int)(raf.length() - raf.getFilePointer()));
+        ByteBuffer bb       = ByteBuffer.allocate((int) (raf.length() - raf.getFilePointer()));
         ByteBuffer bbTemp   = ByteBuffer.allocate((int)(raf.length() - raf.getFilePointer()));
 
         //Read in the rest of the data into bytebuffer and rewind it to start
         raf.getChannel().read(bb);
         bb.rewind();
+        long bytesToDiscard = 0;
         while(bb.hasRemaining())
         {
-            OggPageHeader nextPage = OggPageHeader.read(bb);
-
+            OggPageHeader nextPage=null;
+            try
+            {
+                nextPage = OggPageHeader.read(bb);
+            }
+            catch(CannotReadException cre)
+            {
+                //Go back to where were
+                bb.position(bb.position() - OggPageHeader.CAPTURE_PATTERN.length);
+                //#117:Ogg file with invalid ID3v1 tag at end remove and save
+                if(Utils.readThreeBytesAsChars(bb).equals(AbstractID3v1Tag.TAG))
+                {
+                    bytesToDiscard = bb.remaining() + AbstractID3v1Tag.TAG.length();
+                    break;
+                }
+                else
+                {
+                    throw cre;
+                }
+            }
             //Create buffer large enough for next page (header and data) and set byte order to LE so we can use
             //putInt method
             ByteBuffer nextPageHeaderBuffer = ByteBuffer.allocate(nextPage.getRawHeaderData().length + nextPage.getPageLength());
@@ -473,45 +494,15 @@ public class OggVorbisTagWriter
             bbTemp.put(nextPageHeaderBuffer);
         }
         //Now just write as a single IO operation
-        bbTemp.rewind();
+        bbTemp.flip();
         rafTemp.getChannel().write(bbTemp);
-        //Check we have written all the data
-        //TODO could we do any other checks to check data written correctly ?
-        if ((raf.length() - startAudio) != (rafTemp.length() - startAudioWritten))
+        //Check we have written all the data (minus any invalid Tag at end)
+        if ((raf.length() - startAudio) != ((rafTemp.length() + bytesToDiscard) - startAudioWritten))
         {
-            throw new CannotWriteException("File written counts don't match, file not written");
-        }
-    }
-    public void writeRemainingPagesOld(int pageSequence, RandomAccessFile raf, RandomAccessFile rafTemp) throws IOException, CannotReadException, CannotWriteException
-        {
-        //Now the Page Sequence Number for all the subsequent pages (containing audio frames) are out because there are
-        //less pages before then there used to be, so need to adjust
-        long startAudio = raf.getFilePointer();
-        long startAudioWritten = rafTemp.getFilePointer();
-        logger.fine("Writing audio, audio starts in original file at :" + startAudio + ":Written to:" + startAudioWritten);
-        while (raf.getFilePointer() < raf.length())
-        {
-            logger.fine("Reading Ogg Page");
-            OggPageHeader nextPage = OggPageHeader.read(raf);
-
-            //Create buffer large enough for next page (header and data) and set byte order to LE so we can use
-            //putInt method
-            ByteBuffer nextPageHeaderBuffer = ByteBuffer.allocate(nextPage.getRawHeaderData().length + nextPage.getPageLength());
-            nextPageHeaderBuffer.order(ByteOrder.LITTLE_ENDIAN);
-
-            nextPageHeaderBuffer.put(nextPage.getRawHeaderData());
-            raf.getChannel().read(nextPageHeaderBuffer);
-
-            //Recalculate Page Sequence Number
-            nextPageHeaderBuffer.putInt(OggPageHeader.FIELD_PAGE_SEQUENCE_NO_POS, ++pageSequence);
-
-            //Calculate Checksum
-            calculateChecksumOverPage(nextPageHeaderBuffer);
-            rafTemp.getChannel().write(nextPageHeaderBuffer);
-        }
-        if ((raf.length() - startAudio) != (rafTemp.length() - startAudioWritten))
-        {
-            throw new CannotWriteException("File written counts don't match, file not written");
+            throw new CannotWriteException("File written counts don't match, file not written:"
+                    +"origAudioLength:"+(raf.length() - startAudio)
+                    +":newAudioLength:"+((rafTemp.length() + bytesToDiscard) - startAudioWritten)
+                    +":bytesDiscarded:"+bytesToDiscard);
         }
     }
 

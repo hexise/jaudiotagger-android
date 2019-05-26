@@ -18,6 +18,7 @@
  */
 package org.jaudiotagger.audio.mp4;
 
+import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.generic.AudioFileWriter;
 import org.jaudiotagger.tag.Tag;
@@ -36,12 +37,12 @@ public class Mp4FileWriter extends AudioFileWriter
     private Mp4TagWriter tw = new Mp4TagWriter();
 
 
-    protected void writeTag(Tag tag, RandomAccessFile raf, RandomAccessFile rafTemp) throws CannotWriteException, IOException
+    protected void writeTag(AudioFile audioFile, Tag tag, RandomAccessFile raf, RandomAccessFile rafTemp) throws CannotWriteException, IOException
     {
         tw.write(tag, raf, rafTemp);
     }
 
-    protected void deleteTag(RandomAccessFile raf, RandomAccessFile rafTemp) throws IOException
+    protected void deleteTag(Tag tag, RandomAccessFile raf, RandomAccessFile rafTemp) throws IOException
     {
         tw.delete(raf, rafTemp);
     }

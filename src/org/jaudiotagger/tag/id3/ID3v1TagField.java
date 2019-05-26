@@ -1,10 +1,11 @@
 package org.jaudiotagger.tag.id3;
 
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.TagTextField;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * This class encapsulates the name and content of a tag entry in id3 fields
@@ -41,11 +42,11 @@ public class ID3v1TagField implements TagTextField
      * @param raw Raw byte data of the tagfield.
      * @throws UnsupportedEncodingException If the data doesn't conform "UTF-8" specification.
      */
-    public ID3v1TagField(byte[] raw) throws UnsupportedEncodingException
+    public ID3v1TagField(final byte[] raw) throws UnsupportedEncodingException
     {
-        String field = new String(raw, "ISO-8859-1");
+        String field = new String(raw, StandardCharsets.ISO_8859_1);
 
-        int i = field.indexOf("=");
+        int i = field.indexOf('=');
         if (i == -1)
         {
             //Beware that ogg ID, must be capitalized and contain no space..
@@ -74,7 +75,7 @@ public class ID3v1TagField implements TagTextField
      * @param fieldId      ID (name) of the field.
      * @param fieldContent Content of the field.
      */
-    public ID3v1TagField(String fieldId, String fieldContent)
+    public ID3v1TagField(final String fieldId, final String fieldContent)
     {
         this.id = fieldId.toUpperCase();
         this.content = fieldContent;
@@ -111,9 +112,7 @@ public class ID3v1TagField implements TagTextField
         System.arraycopy(src, 0, dst, dstOffset, src.length);
     }
 
-    /**
-     * @see TagField#copyContent(TagField)
-     */
+    @Override
     public void copyContent(TagField field)
     {
         if (field instanceof TagTextField)
@@ -122,38 +121,30 @@ public class ID3v1TagField implements TagTextField
         }
     }
 
-    /**
-     * @see TagTextField#getContent()
-     */
+    @Override
     public String getContent()
     {
         return content;
     }
 
-    /**
-     * @see TagTextField#getEncoding()
-     */
-    public String getEncoding()
+    @Override
+    public Charset getEncoding()
     {
-        return "ISO-8859-1";
+        return StandardCharsets.ISO_8859_1;
     }
 
-    /**
-     * @see TagField#getId()
-     */
+    @Override
     public String getId()
     {
         return this.id;
     }
 
-    /**
-     * @see TagField#getRawContent()
-     */
+    @Override
     public byte[] getRawContent() throws UnsupportedEncodingException
     {
         byte[] size = new byte[4];
-        byte[] idBytes = this.id.getBytes("ISO-8859-1");
-        byte[] contentBytes = Utils.getDefaultBytes(this.content, "ISO-8859-1");
+        byte[] idBytes = this.id.getBytes(StandardCharsets.ISO_8859_1);
+        byte[] contentBytes = this.content.getBytes(StandardCharsets.ISO_8859_1);
         byte[] b = new byte[4 + idBytes.length + 1 + contentBytes.length];
 
         int length = idBytes.length + 1 + contentBytes.length;
@@ -174,54 +165,43 @@ public class ID3v1TagField implements TagTextField
         return b;
     }
 
-    /**
-     * @see TagField#isBinary()
-     */
+    @Override
     public boolean isBinary()
     {
         return false;
     }
 
-    /**
-     * @see TagField#isBinary(boolean)
-     */
+    @Override
     public void isBinary(boolean b)
     {
         //Do nothing, always false
     }
 
-    /**
-     * @see TagField#isCommon()
-     */
+    @Override
     public boolean isCommon()
     {
         return common;
     }
 
-    /**
-     * @see TagField#isEmpty()
-     */
+    @Override
     public boolean isEmpty()
     {
-        return this.content.equals("");
+        return "".equals(this.content);
     }
 
-    /**
-     * @see TagTextField#setContent(String)
-     */
+    @Override
     public void setContent(String s)
     {
         this.content = s;
     }
 
-    /**
-     * @see TagTextField#setEncoding(String)
-     */
-    public void setEncoding(String s)
+    @Override
+    public void setEncoding(Charset s)
     {
         //Do nothing, encoding is always ISO-8859-1 for this tag
     }
 
+    @Override
     public String toString()
     {
         return getContent();

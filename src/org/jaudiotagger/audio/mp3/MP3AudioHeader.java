@@ -64,6 +64,8 @@ public class MP3AudioHeader implements AudioHeader
     protected XingFrame mp3XingFrame;
     protected VbriFrame mp3VbriFrame;
 
+    private Long    audioDataStartPosition;
+    private Long    audioDataEndPosition;
 
     private long fileSize;
     private long startByte;
@@ -330,7 +332,7 @@ public class MP3AudioHeader implements AudioHeader
      * @param bb
      * @param fc
      * @return true if frame is valid
-     * @throws java.io.IOException
+     * @throws IOException
      */
     private boolean isNextFrameValid(File seekFile, long filePointerCount, ByteBuffer bb, FileChannel fc) throws IOException
     {
@@ -450,13 +452,18 @@ public class MP3AudioHeader implements AudioHeader
     }
 
     /**
-     * @return The number of frames within the Audio File, calculated as accurrately as possible
+     * @return The number of frames within the Audio File, calculated as accurately as possible
      */
     public long getNumberOfFrames()
     {
         return numberOfFrames;
     }
 
+    @Override
+    public Long getNoOfSamples()
+    {
+        return numberOfFrames;
+    }
     /**
      * @return The number of frames within the Audio File, calculated by dividing the filesize by
      *         the number of frames, this may not be the most accurate method available.
@@ -820,5 +827,45 @@ public class MP3AudioHeader implements AudioHeader
             s +=" mp3VbriFrame:false";
         }
         return s;
+    }
+
+    /**
+     * TODO (Was originally added for Wavs)
+     * @return
+     */
+    public Integer getByteRate()
+    {
+        return null;
+    }
+
+    /**
+     * TODO (Was origjnally added for Wavs)
+     * @return
+     */
+    public Long getAudioDataLength()
+    {
+        return Long.valueOf(0);
+    }
+
+    @Override
+    public Long getAudioDataStartPosition()
+    {
+        return audioDataStartPosition;
+    }
+
+    public void setAudioDataStartPosition(Long audioDataStartPosition)
+    {
+        this.audioDataStartPosition = audioDataStartPosition;
+    }
+
+    @Override
+    public Long getAudioDataEndPosition()
+    {
+        return audioDataEndPosition;
+    }
+
+    public void setAudioDataEndPosition(Long audioDataEndPosition)
+    {
+        this.audioDataEndPosition = audioDataEndPosition;
     }
 }

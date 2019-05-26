@@ -20,6 +20,7 @@ package org.jaudiotagger.tag;
 
 import org.jaudiotagger.tag.images.Artwork;
 
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.List;
 
@@ -49,6 +50,7 @@ import java.util.List;
  * @author Paul Taylor
  */
 public interface Tag {
+
     /**
      * Create the field based on the generic key and set it in the tag
      *
@@ -57,7 +59,7 @@ public interface Tag {
      * @throws KeyNotFoundException
      * @throws FieldDataInvalidException
      */
-    public void setField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException;
+    void setField(FieldKey genericKey, String... value) throws KeyNotFoundException, FieldDataInvalidException;
 
     /**
      * Create the field based on the generic key and add it to the tag
@@ -69,7 +71,7 @@ public interface Tag {
      * @throws KeyNotFoundException
      * @throws FieldDataInvalidException
      */
-    public void addField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException;
+    void addField(FieldKey genericKey, String... value) throws KeyNotFoundException, FieldDataInvalidException;
 
     /**
      * Delete any fields with this key
@@ -77,7 +79,7 @@ public interface Tag {
      * @param fieldKey
      * @throws KeyNotFoundException
      */
-    public void deleteField(FieldKey fieldKey) throws KeyNotFoundException;
+    void deleteField(FieldKey fieldKey) throws KeyNotFoundException;
 
     /**
      * Delete any fields with this Flac (Vorbis Comment) id
@@ -85,7 +87,7 @@ public interface Tag {
      * @param key
      * @throws KeyNotFoundException
      */
-    public void deleteField(String key)throws KeyNotFoundException;
+    void deleteField(String key)throws KeyNotFoundException;
 
     /**
      * Returns a {@linkplain List list} of {@link TagField} objects whose &quot;{@linkplain TagField#getId() id}&quot;
@@ -96,7 +98,7 @@ public interface Tag {
      * @param id The field id.
      * @return A list of {@link TagField} objects with the given &quot;id&quot;.
      */
-    public List<TagField> getFields(String id);
+    List<TagField> getFields(String id);
 
     /**
      * Returns a {@linkplain List list} of {@link TagField} objects whose &quot;{@linkplain TagField#getId() id}&quot;
@@ -106,7 +108,7 @@ public interface Tag {
      * @return A list of {@link TagField} objects with the given &quot;id&quot;.
      * @throws KeyNotFoundException
      */
-    public List<TagField> getFields(FieldKey id) throws KeyNotFoundException;
+    List<TagField> getFields(FieldKey id) throws KeyNotFoundException;
 
 
     /**
@@ -114,7 +116,7 @@ public interface Tag {
      *
      * @return iterator over whole list
      */
-    public Iterator<TagField> getFields();
+    Iterator<TagField> getFields();
 
 
     /**
@@ -125,7 +127,7 @@ public interface Tag {
      * @param id
      * @return
      */
-    public String getFirst(String id);
+    String getFirst(String id);
 
     /**
      * Retrieve String value of the first tag field that exists for this generic key
@@ -134,7 +136,7 @@ public interface Tag {
      * @return String value or empty string
      * @throws KeyNotFoundException
      */
-    public String getFirst(FieldKey id) throws KeyNotFoundException;
+    String getFirst(FieldKey id) throws KeyNotFoundException;
 
     /**
      * Retrieve all String values that exist for this generic key
@@ -143,7 +145,7 @@ public interface Tag {
      * @return
      * @throws KeyNotFoundException
      */
-    public List<String> getAll(FieldKey id) throws KeyNotFoundException;
+    List<String> getAll(FieldKey id) throws KeyNotFoundException;
 
     /**
      * Retrieve String value of the nth tag field that exists for this generic key
@@ -152,7 +154,7 @@ public interface Tag {
      * @param n
      * @return
      */
-    public String getValue(FieldKey id, int n);
+    String getValue(FieldKey id, int n);
 
     /**
      * Retrieve the first field that exists for this format specific key
@@ -162,14 +164,13 @@ public interface Tag {
      * @param id audio specific key
      * @return tag field or null if doesn't exist
      */
-    public TagField getFirstField(String id);
+    TagField getFirstField(String id);
 
     /**
      * @param id
      * @return the first field that matches this generic key
      */
-    public TagField getFirstField(FieldKey id);
-
+    TagField getFirstField(FieldKey id);
 
     /**
      * Returns <code>true</code>, if at least one of the contained
@@ -178,7 +179,7 @@ public interface Tag {
      * @return <code>true</code> if a {@linkplain TagField#isCommon() common}
      *         field is present.
      */
-    public boolean hasCommonFields();
+    boolean hasCommonFields();
 
     /**
      * Determines whether the tag has at least one field with the specified field key.
@@ -186,7 +187,7 @@ public interface Tag {
      * @param fieldKey
      * @return
      */
-    public boolean hasField(FieldKey fieldKey);
+    boolean hasField(FieldKey fieldKey);
 
     /**
      * Determines whether the tag has at least one field with the specified
@@ -196,20 +197,18 @@ public interface Tag {
      * @return <code>true</code> if tag contains a {@link TagField} with the
      *         given {@linkplain TagField#getId() id}.
      */
-    public boolean hasField(String id);
+    boolean hasField(String id);
 
     /**
      * Determines whether the tag has no fields specified.<br>
      *
      * @return <code>true</code> if tag contains no field.
      */
-    public boolean isEmpty();
+    boolean isEmpty();
 
 
     //TODO, do we need this
-    public String toString();
-
-
+    String toString();
 
     /**
      * Return the number of fields
@@ -220,7 +219,7 @@ public interface Tag {
      *
      * @return total number of fields
      */
-    public int getFieldCount();
+    int getFieldCount();
 
 
     /**
@@ -232,22 +231,22 @@ public interface Tag {
      *
      * @return total number of fields taking multiple value fields into consideration
      */
-    public int getFieldCountIncludingSubValues();
+    int getFieldCountIncludingSubValues();
 
 
     //TODO is this a special field?
-    public boolean setEncoding(String enc) throws FieldDataInvalidException;
+    boolean setEncoding(Charset enc) throws FieldDataInvalidException;
 
 
     /**
      * @return a list of all artwork in this file using the format independent Artwork class
      */
-    public List<Artwork> getArtworkList();
+    List<Artwork> getArtworkList();
 
     /**
      * @return first artwork or null if none exist
      */
-    public Artwork getFirstArtwork();
+    Artwork getFirstArtwork();
 
     /**
      * Delete any instance of tag fields used to store artwork
@@ -257,7 +256,7 @@ public interface Tag {
      *
      * @throws KeyNotFoundException
      */
-    public void deleteArtworkField() throws KeyNotFoundException;
+    void deleteArtworkField() throws KeyNotFoundException;
 
 
     /**
@@ -267,7 +266,7 @@ public interface Tag {
      * @return suitable tagfield for this format that represents the artwork data
      * @throws FieldDataInvalidException
      */
-    public TagField createField(Artwork artwork) throws FieldDataInvalidException;
+    TagField createField(Artwork artwork) throws FieldDataInvalidException;
 
     /**
      * Create artwork field based on the data in artwork and then set it in the tag itself
@@ -276,7 +275,7 @@ public interface Tag {
      * @param artwork
      * @throws FieldDataInvalidException
      */
-    public void setField(Artwork artwork) throws FieldDataInvalidException;
+    void setField(Artwork artwork) throws FieldDataInvalidException;
 
     /**
      * Create artwork field based on the data in artwork and then add it to the tag itself
@@ -285,7 +284,7 @@ public interface Tag {
      * @param artwork
      * @throws FieldDataInvalidException
      */
-    public void addField(Artwork artwork) throws FieldDataInvalidException;
+    void addField(Artwork artwork) throws FieldDataInvalidException;
 
     /**
      * Sets a field in the structure, used internally by the library<br>
@@ -294,7 +293,7 @@ public interface Tag {
      * @param field The field to add.
      * @throws FieldDataInvalidException
      */
-    public void setField(TagField field) throws FieldDataInvalidException;
+    void setField(TagField field) throws FieldDataInvalidException;
 
     /**
      * Adds a field to the structure, used internally by the library<br>
@@ -303,7 +302,7 @@ public interface Tag {
      * @param field The field to add.
      * @throws FieldDataInvalidException
      */
-    public void addField(TagField field) throws FieldDataInvalidException;
+    void addField(TagField field) throws FieldDataInvalidException;
 
     /**
      * Create a new field based on generic key, used internally by the library
@@ -311,6 +310,9 @@ public interface Tag {
      * <p>Only textual data supported at the moment. The genericKey will be mapped
      * to the correct implementation key and return a TagField.
      *
+     * Usually the value field should only be one value, but certain fields may require more than one value
+     * currently the only field to require this is the MUSICIAN field, it should contain instrument and then
+     * performer name
      *
      * @param genericKey is the generic key
      * @param value      to store
@@ -318,7 +320,7 @@ public interface Tag {
      * @throws KeyNotFoundException
      * @throws FieldDataInvalidException
      */
-    public TagField createField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException;
+    TagField createField(FieldKey genericKey, String... value) throws KeyNotFoundException, FieldDataInvalidException;
 
     /**
      * Creates isCompilation field
@@ -331,6 +333,6 @@ public interface Tag {
      * @throws KeyNotFoundException
      * @throws FieldDataInvalidException
      */
-    public abstract TagField createCompilationField(boolean value) throws KeyNotFoundException, FieldDataInvalidException;
+    TagField createCompilationField(boolean value) throws KeyNotFoundException, FieldDataInvalidException;
 
 }

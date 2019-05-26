@@ -27,7 +27,6 @@ package org.jaudiotagger.tag.id3;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -62,6 +61,7 @@ abstract public class AbstractID3v1Tag extends AbstractID3Tag
     protected static Pattern endofStringPattern = Pattern.compile("\\x00");
 
     //Tag ID as held in file
+    public static final String TAG = "TAG";
     protected static final byte[] TAG_ID = {(byte) 'T', (byte) 'A', (byte) 'G'};
 
     //Fields Lengths common to v1 and v1.1 tags

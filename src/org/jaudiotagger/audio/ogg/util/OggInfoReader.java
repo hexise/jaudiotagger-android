@@ -21,13 +21,14 @@ package org.jaudiotagger.audio.ogg.util;
 
 import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.generic.GenericAudioHeader;
+import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.logging.Logger;
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 /**
  * Read encoding info, only implemented for vorbis streams
@@ -107,6 +108,11 @@ public class OggInfoReader
         //1st page = Identification Header
         OggPageHeader pageHeader = OggPageHeader.read(raf);
         byte[] vorbisData = new byte[pageHeader.getPageLength()];
+
+        if(vorbisData.length < OggPageHeader.OGG_PAGE_HEADER_FIXED_LENGTH)
+        {
+            throw new CannotReadException("Invalid Identification header for this Ogg File");
+        }
         raf.read(vorbisData);
         VorbisIdentificationHeader vorbisIdentificationHeader = new VorbisIdentificationHeader(vorbisData);
 
@@ -115,7 +121,6 @@ public class OggInfoReader
         info.setChannelNumber(vorbisIdentificationHeader.getChannelNumber());
         info.setSamplingRate(vorbisIdentificationHeader.getSamplingRate());
         info.setEncodingType(vorbisIdentificationHeader.getEncodingType());
-        info.setExtraEncodingInfos("");
 
         //According to Wikipedia Vorbis Page, Vorbis only works on 16bits 44khz 
         info.setBitsPerSample(16);
@@ -124,23 +129,22 @@ public class OggInfoReader
         if (vorbisIdentificationHeader.getNominalBitrate() != 0 && vorbisIdentificationHeader.getMaxBitrate() == vorbisIdentificationHeader.getNominalBitrate() && vorbisIdentificationHeader.getMinBitrate() == vorbisIdentificationHeader.getNominalBitrate())
         {
             //CBR (in kbps)
-            info.setBitrate(vorbisIdentificationHeader.getNominalBitrate() / 1000);
+            info.setBitRate(vorbisIdentificationHeader.getNominalBitrate() / 1000);
             info.setVariableBitRate(false);
         }
         else
         if (vorbisIdentificationHeader.getNominalBitrate() != 0 && vorbisIdentificationHeader.getMaxBitrate() == 0 && vorbisIdentificationHeader.getMinBitrate() == 0)
         {
             //Average vbr (in kpbs)
-            info.setBitrate(vorbisIdentificationHeader.getNominalBitrate() / 1000);
+            info.setBitRate(vorbisIdentificationHeader.getNominalBitrate() / 1000);
             info.setVariableBitRate(true);
         }
         else
         {
             //TODO need to remove comment from raf.getLength()
-            info.setBitrate(computeBitrate(info.getTrackLength(), raf.length()));
+            info.setBitRate(computeBitrate(info.getTrackLength(), raf.length()));
             info.setVariableBitRate(true);
         }
-        logger.fine("Finished");
         return info;
     }
 
@@ -151,7 +155,7 @@ public class OggInfoReader
         {
             length=1;
         }
-        return (int) ((size / 1000) * 8 / length);
+        return (int) ((size / Utils.KILOBYTE_MULTIPLIER) * Utils.BITS_IN_BYTE_MULTIPLIER / length);
     }
 }
 

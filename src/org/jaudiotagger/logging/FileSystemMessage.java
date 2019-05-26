@@ -6,6 +6,7 @@ package org.jaudiotagger.logging;
 public enum FileSystemMessage
 {
     ACCESS_IS_DENIED("Access is denied"),
+    PERMISSION_DENIED("Permission denied"),	// message from a *nix OS
 
     ;
     String msg;

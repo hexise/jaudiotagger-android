@@ -3,6 +3,7 @@ package org.jaudiotagger.audio.mp4.atom;
 import org.jaudiotagger.audio.generic.Utils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -127,6 +128,7 @@ public class Mp4EsdsBox extends AbstractMp4Box
     public Mp4EsdsBox(Mp4BoxHeader header, ByteBuffer dataBuffer)
     {
         this.header = header;
+        dataBuffer.order(ByteOrder.BIG_ENDIAN);
 
         //Not currently used, as lengths can extend over more than one section i think
         int sectionThreeLength;
@@ -158,13 +160,8 @@ public class Mp4EsdsBox extends AbstractMp4Box
             dataBuffer.position(dataBuffer.position() + STREAM_TYPE_LENGTH + BUFFER_SIZE_LENGTH);
 
             //Bit rates
-            this.maxBitrate = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + MAX_BITRATE_LENGTH - 1));
-            dataBuffer.position(dataBuffer.position() + MAX_BITRATE_LENGTH);
-
-            this.avgBitrate = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + AVERAGE_BITRATE_LENGTH - 1));
-            dataBuffer.position(dataBuffer.position() + AVERAGE_BITRATE_LENGTH);
-
-
+            this.maxBitrate = dataBuffer.getInt();
+            this.avgBitrate = dataBuffer.getInt();
         }
         //Process Section 5,(to getFields no of channels and audioprofile(profile in itunes))
         if (dataBuffer.get() == SECTION_FIVE)
@@ -219,11 +216,11 @@ public class Mp4EsdsBox extends AbstractMp4Box
         {
             dataBuffer.get();
             dataBuffer.get();
-            datalength = dataBuffer.get();
+            datalength = Utils.u(dataBuffer.get());
         }
         else
         {
-            datalength = nextByte;
+            datalength = Utils.u(nextByte);
         }
         return datalength;
     }

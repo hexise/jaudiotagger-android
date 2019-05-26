@@ -26,10 +26,11 @@ import java.util.Date;
 /**
  * This class stores the information about the file, which is contained within a
  * special chunk of ASF files.<br>
- * 
+ *
  * @author Christian Laireiter
  */
-public class FileHeader extends Chunk {
+public class FileHeader extends Chunk
+{
 
     /**
      * Duration of the media content in 100ns steps.
@@ -88,37 +89,22 @@ public class FileHeader extends Chunk {
 
     /**
      * Creates an instance.
-     * 
-     * @param chunckLen
-     *            Length of the file header (chunk)
-     * @param size
-     *            Size of file or stream
-     * @param fileTime
-     *            Time file or stream was created. Time is calculated since 1st
-     *            january of 1601 in 100ns steps.
-     * @param pkgCount
-     *            Number of stream packages.
-     * @param dur
-     *            Duration of media clip in 100ns steps
-     * @param timestampStart
-     *            Timestamp of start {@link #timeStartPos}
-     * @param timestampEnd
-     *            Timestamp of end {@link #timeEndPos}
-     * @param headerFlags
-     *            some stream related flags.
-     * @param minPkgSize
-     *            minimum size of packages
-     * @param maxPkgSize
-     *            maximum size of packages
-     * @param uncmpVideoFrameSize
-     *            Size of an uncompressed Video Frame.
+     *
+     * @param chunckLen           Length of the file header (chunk)
+     * @param size                Size of file or stream
+     * @param fileTime            Time file or stream was created. Time is calculated since 1st
+     *                            january of 1601 in 100ns steps.
+     * @param pkgCount            Number of stream packages.
+     * @param dur                 Duration of media clip in 100ns steps
+     * @param timestampStart      Timestamp of start {@link #timeStartPos}
+     * @param timestampEnd        Timestamp of end {@link #timeEndPos}
+     * @param headerFlags         some stream related flags.
+     * @param minPkgSize          minimum size of packages
+     * @param maxPkgSize          maximum size of packages
+     * @param uncmpVideoFrameSize Size of an uncompressed Video Frame.
      */
-    public FileHeader(final BigInteger chunckLen, final BigInteger size,
-            final BigInteger fileTime, final BigInteger pkgCount,
-            final BigInteger dur, final BigInteger timestampStart,
-            final BigInteger timestampEnd, final long headerFlags,
-            final long minPkgSize, final long maxPkgSize,
-            final long uncmpVideoFrameSize) {
+    public FileHeader(final BigInteger chunckLen, final BigInteger size, final BigInteger fileTime, final BigInteger pkgCount, final BigInteger dur, final BigInteger timestampStart, final BigInteger timestampEnd, final long headerFlags, final long minPkgSize, final long maxPkgSize, final long uncmpVideoFrameSize)
+    {
         super(GUID.GUID_FILE, chunckLen);
         this.fileSize = size;
         this.packageCount = pkgCount;
@@ -135,110 +121,118 @@ public class FileHeader extends Chunk {
     /**
      * @return Returns the duration.
      */
-    public BigInteger getDuration() {
+    public BigInteger getDuration()
+    {
         return this.duration;
     }
 
     /**
      * This method converts {@link #getDuration()}from 100ns steps to normal
      * seconds.
-     * 
+     *
      * @return Duration of the media in seconds.
      */
-    public int getDurationInSeconds() {
+    public int getDurationInSeconds()
+    {
         return this.duration.divide(new BigInteger("10000000")).intValue();
     }
 
     /**
      * @return Returns the fileCreationTime.
      */
-    public Date getFileCreationTime() {
+    public Date getFileCreationTime()
+    {
         return new Date(this.fileCreationTime.getTime());
     }
 
     /**
      * @return Returns the fileSize.
      */
-    public BigInteger getFileSize() {
+    public BigInteger getFileSize()
+    {
         return this.fileSize;
     }
 
     /**
      * @return Returns the flags.
      */
-    public long getFlags() {
+    public long getFlags()
+    {
         return this.flags;
     }
 
     /**
      * @return Returns the maxPackageSize.
      */
-    public long getMaxPackageSize() {
+    public long getMaxPackageSize()
+    {
         return this.maxPackageSize;
     }
 
     /**
      * @return Returns the minPackageSize.
      */
-    public long getMinPackageSize() {
+    public long getMinPackageSize()
+    {
         return this.minPackageSize;
     }
 
     /**
      * @return Returns the packageCount.
      */
-    public BigInteger getPackageCount() {
+    public BigInteger getPackageCount()
+    {
         return this.packageCount;
     }
 
     /**
      * This method converts {@link #getDuration()} from 100ns steps to normal
      * seconds with a fractional part taking milliseconds.<br>
-     * 
+     *
      * @return The duration of the media in seconds (with a precision of
-     *         milliseconds)
+     * milliseconds)
      */
-    public float getPreciseDuration() {
+    public float getPreciseDuration()
+    {
         return (float) (getDuration().doubleValue() / 10000000d);
     }
 
     /**
      * @return Returns the timeEndPos.
      */
-    public BigInteger getTimeEndPos() {
+    public BigInteger getTimeEndPos()
+    {
         return this.timeEndPos;
     }
 
     /**
      * @return Returns the timeStartPos.
      */
-    public BigInteger getTimeStartPos() {
+    public BigInteger getTimeStartPos()
+    {
         return this.timeStartPos;
     }
 
     /**
      * @return Returns the uncompressedFrameSize.
      */
-    public long getUncompressedFrameSize() {
+    public long getUncompressedFrameSize()
+    {
         return this.uncompressedFrameSize;
     }
 
     /**
      * (overridden)
-     * 
-     * @see org.jaudiotagger.audio.asf.data.Chunk#prettyPrint(String)
+     *
+     * @see Chunk#prettyPrint(String)
      */
     @Override
-    public String prettyPrint(final String prefix) {
+    public String prettyPrint(final String prefix)
+    {
         final StringBuilder result = new StringBuilder(super.prettyPrint(prefix));
-        result.append(prefix).append("  |-> Filesize      = ").append(
-                getFileSize().toString()).append(" Bytes").append(
-                Utils.LINE_SEPARATOR);
-        result.append(prefix).append("  |-> Media duration= ").append(
-                getDuration().divide(new BigInteger("10000")).toString())
-                .append(" ms").append(Utils.LINE_SEPARATOR);
-        result.append(prefix).append("  |-> Created at    = ").append(
-                getFileCreationTime()).append(Utils.LINE_SEPARATOR);
+        result.append(prefix).append("  |-> Filesize      = ").append(getFileSize().toString()).append(" Bytes").append(Utils.LINE_SEPARATOR);
+        result.append(prefix).append("  |-> Media duration= ").append(getDuration().divide(new BigInteger("10000")).toString()).append(" ms").append(Utils.LINE_SEPARATOR);
+        result.append(prefix).append("  |-> Created at    = ").append(getFileCreationTime()).append(Utils.LINE_SEPARATOR);
         return result.toString();
     }
 }

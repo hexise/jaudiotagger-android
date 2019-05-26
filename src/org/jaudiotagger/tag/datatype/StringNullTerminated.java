@@ -24,7 +24,10 @@
 package org.jaudiotagger.tag.datatype;
 
 import org.jaudiotagger.tag.id3.AbstractTagFrameBody;
-import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
+
+import java.nio.charset.Charset;
+
+import static org.jaudiotagger.StandardCharsets.ISO_8859_1;
 
 /**
  * Represents a String whose size is determined by finding of a null character at the end of the String with fixed text encoding.
@@ -54,8 +57,8 @@ public class StringNullTerminated extends TextEncodedStringNullTerminated
         return obj instanceof StringNullTerminated && super.equals(obj);
     }
 
-    protected String getTextEncodingCharSet()
+    protected Charset getTextEncodingCharSet()
     {
-        return TextEncoding.CHARSET_ISO_8859_1;
+        return ISO_8859_1;
     }
 }

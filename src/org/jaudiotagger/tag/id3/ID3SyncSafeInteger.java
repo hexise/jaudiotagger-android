@@ -38,7 +38,7 @@ public class ID3SyncSafeInteger
      * @param buffer syncsafe integer
      * @return decoded int
      */
-    private static int bufferToValue(byte[] buffer)
+    public static int bufferToValue(byte[] buffer)
     {
         //Note Need to && with 0xff otherwise if value is greater than 128 we get a negative number
         //when cast byte to int
@@ -53,7 +53,7 @@ public class ID3SyncSafeInteger
      * @param buffer syncsafe integer
      * @return decoded int
      */
-    protected static int bufferToValue(ByteBuffer buffer)
+    public static int bufferToValue(ByteBuffer buffer)
     {
         byte byteBuffer[] = new byte[INTEGRAL_SIZE];
         buffer.get(byteBuffer, 0, INTEGRAL_SIZE);

@@ -16,25 +16,26 @@
 package org.jaudiotagger.tag.id3;
 
 import org.jaudiotagger.FileConstants;
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.logging.Hex;
 import org.jaudiotagger.tag.EmptyFrameException;
 import org.jaudiotagger.tag.InvalidDataTypeException;
 import org.jaudiotagger.tag.InvalidFrameException;
 import org.jaudiotagger.tag.InvalidFrameIdentifierException;
-import org.jaudiotagger.tag.id3.framebody.*;
+import org.jaudiotagger.tag.id3.framebody.AbstractID3v2FrameBody;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyDeprecated;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyUnsupported;
+import org.jaudiotagger.tag.id3.framebody.ID3v23FrameBody;
 import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 import org.jaudiotagger.utils.EqualsUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
+import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
 
 /**
  * Represents an ID3v2.3 frame.
@@ -117,6 +118,22 @@ public class ID3v23Frame extends AbstractID3v2Frame
     }
 
     /**
+     * Partially construct ID3v24 Frame form an IS3v23Frame
+     *
+     * Used for Special Cases
+     *
+     * @param frame
+     * @param identifier
+     * @throws InvalidFrameException
+     */
+    protected ID3v23Frame(ID3v24Frame frame, String identifier) throws InvalidFrameException
+    {
+        this.identifier=identifier;
+        statusFlags = new StatusFlags((ID3v24Frame.StatusFlags) frame.getStatusFlags());
+        encodingFlags = new EncodingFlags(frame.getEncodingFlags().getFlags());
+    }
+
+    /**
      * Creates a new ID3v23Frame  based on another frame of a different version.
      *
      * @param frame
@@ -129,7 +146,12 @@ public class ID3v23Frame extends AbstractID3v2Frame
         {
             throw new UnsupportedOperationException("Copy Constructor not called. Please type cast the argument");
         }
-        if (frame instanceof ID3v24Frame)
+        else if (frame instanceof ID3v22Frame)
+        {
+            statusFlags = new StatusFlags();
+            encodingFlags = new EncodingFlags();
+        }
+        else if (frame instanceof ID3v24Frame)
         {
             statusFlags = new StatusFlags((ID3v24Frame.StatusFlags) frame.getStatusFlags());
             encodingFlags = new EncodingFlags(frame.getEncodingFlags().getFlags());
@@ -461,7 +483,9 @@ public class ID3v23Frame extends AbstractID3v2Frame
             }
             else if (((EncodingFlags) encodingFlags).isEncryption())
             {
-                frameBody = readEncryptedBody(identifier, byteBuffer, frameSize);
+                frameBodyBuffer = byteBuffer.slice();
+                frameBodyBuffer.limit(frameSize);
+                frameBody = readEncryptedBody(identifier, frameBodyBuffer, frameSize);
             }
             else
             {
@@ -505,7 +529,7 @@ public class ID3v23Frame extends AbstractID3v2Frame
         {
             identifier = identifier + ' ';
         }
-        headerBuffer.put(Utils.getDefaultBytes(getIdentifier(), "ISO-8859-1"), 0, FRAME_ID_SIZE);
+        headerBuffer.put(getIdentifier().getBytes(StandardCharsets.ISO_8859_1), 0, FRAME_ID_SIZE);
         //Write Frame Size
         int size = frameBody.getSize();
         logger.fine("Frame Size Is:" + size);
@@ -840,12 +864,12 @@ public class ID3v23Frame extends AbstractID3v2Frame
      /**
      * Sets the charset encoding used by the field.
      *
-     * @param encoding charset.
-     */
-    public void setEncoding(String encoding)
+      * @param encoding charset.
+      */
+    public void setEncoding(final Charset encoding)
     {
-        Integer encodingId = TextEncoding.getInstanceOf().getIdForValue(encoding);
-        if(encoding!=null)
+        Integer encodingId = TextEncoding.getInstanceOf().getIdForCharset(encoding);
+        if(encodingId!=null)
         {
             if(encodingId <2)
             {

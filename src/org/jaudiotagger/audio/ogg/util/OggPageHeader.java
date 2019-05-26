@@ -25,12 +25,12 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.logging.Level;
-import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 
 /**
@@ -102,6 +102,7 @@ public class OggPageHeader
     private boolean lastPacketIncomplete = false;
 
     private long startByte = 0;
+
     /**
      * Read next PageHeader from Buffer
      *
@@ -270,7 +271,7 @@ public class OggPageHeader
 
     public int getPageLength()
     {
-        logger.fine("This page length: " + pageLength);
+        logger.finer("This page length: " + pageLength);
         return this.pageLength;
     }
 

@@ -11,11 +11,12 @@ import java.util.Set;
 
 /**
  * This {@link ChunkModifier} implementation is meant to remove selected chunks.<br>
- * 
+ *
  * @author Christian Laireiter
  */
 @SuppressWarnings({"ManualArrayToCollectionCopy"})
-public class ChunkRemover implements ChunkModifier {
+public class ChunkRemover implements ChunkModifier
+{
 
     /**
      * Stores the GUIDs, which are about to be removed by this modifier.<br>
@@ -24,13 +25,14 @@ public class ChunkRemover implements ChunkModifier {
 
     /**
      * Creates an instance, for removing selected chunks.<br>
-     * 
-     * @param guids
-     *            the GUIDs which are about to be removed by this modifier.
+     *
+     * @param guids the GUIDs which are about to be removed by this modifier.
      */
-    public ChunkRemover(final GUID... guids) {
+    public ChunkRemover(final GUID... guids)
+    {
         this.toRemove = new HashSet<GUID>();
-        for (final GUID current : guids) {
+        for (final GUID current : guids)
+        {
             this.toRemove.add(current);
         }
     }
@@ -38,21 +40,25 @@ public class ChunkRemover implements ChunkModifier {
     /**
      * {@inheritDoc}
      */
-    public boolean isApplicable(final GUID guid) {
+    public boolean isApplicable(final GUID guid)
+    {
         return this.toRemove.contains(guid);
     }
 
     /**
      * {@inheritDoc}
      */
-    public ModificationResult modify(final GUID guid, final InputStream source,
-            final OutputStream destination) throws IOException {
+    public ModificationResult modify(final GUID guid, final InputStream source, final OutputStream destination) throws IOException
+    {
         ModificationResult result;
-        if (guid == null) {
+        if (guid == null)
+        {
             // Now a chunk should be added, however, this implementation is for
             // removal.
             result = new ModificationResult(0, 0);
-        } else {
+        }
+        else
+        {
             assert isApplicable(guid);
             // skip the chunk length minus 24 bytes for the already read length
             // and the guid.

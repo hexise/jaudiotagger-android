@@ -5,8 +5,8 @@ import org.jaudiotagger.audio.mp3.MPEGFrameHeader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Performs unsynchronization and synchronization tasks on a buffer.

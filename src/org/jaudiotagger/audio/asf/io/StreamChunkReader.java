@@ -27,49 +27,53 @@ import java.math.BigInteger;
 
 /**
  * Reads and interprets the data of the audio or video stream information chunk. <br>
- * 
+ *
  * @author Christian Laireiter
  */
-public class StreamChunkReader implements ChunkReader {
+public class StreamChunkReader implements ChunkReader
+{
 
     /**
      * The GUID this reader {@linkplain #getApplyingIds() applies to}
      */
-    private final static GUID[] APPLYING = { GUID.GUID_STREAM };
+    private final static GUID[] APPLYING = {GUID.GUID_STREAM};
 
     /**
      * Shouldn't be used for now.
      */
-    protected StreamChunkReader() {
+    protected StreamChunkReader()
+    {
         // Nothing to do
     }
 
     /**
      * {@inheritDoc}
      */
-    public boolean canFail() {
+    public boolean canFail()
+    {
         return true;
     }
 
     /**
      * {@inheritDoc}
      */
-    public GUID[] getApplyingIds() {
+    public GUID[] getApplyingIds()
+    {
         return APPLYING.clone();
     }
 
     /**
      * {@inheritDoc}
      */
-    public Chunk read(final GUID guid, final InputStream stream,
-            final long chunkStart) throws IOException {
+    public Chunk read(final GUID guid, final InputStream stream, final long chunkStart) throws IOException
+    {
         StreamChunk result = null;
         final BigInteger chunkLength = Utils.readBig64(stream);
         // Now comes GUID indicating whether stream content type is audio or
         // video
         final GUID streamTypeGUID = Utils.readGUID(stream);
-        if (GUID.GUID_AUDIOSTREAM.equals(streamTypeGUID)
-                || GUID.GUID_VIDEOSTREAM.equals(streamTypeGUID)) {
+        if (GUID.GUID_AUDIOSTREAM.equals(streamTypeGUID) || GUID.GUID_VIDEOSTREAM.equals(streamTypeGUID))
+        {
 
             // A GUID is indicating whether the stream is error
             // concealed
@@ -102,12 +106,12 @@ public class StreamChunkReader implements ChunkReader {
              */
             long streamSpecificBytes;
 
-            if (GUID.GUID_AUDIOSTREAM.equals(streamTypeGUID)) {
+            if (GUID.GUID_AUDIOSTREAM.equals(streamTypeGUID))
+            {
                 /*
                  * Reading audio specific information
                  */
-                final AudioStreamChunk audioStreamChunk = new AudioStreamChunk(
-                        chunkLength);
+                final AudioStreamChunk audioStreamChunk = new AudioStreamChunk(chunkLength);
                 result = audioStreamChunk;
 
                 /*
@@ -133,12 +137,13 @@ public class StreamChunkReader implements ChunkReader {
                 audioStreamChunk.setCodecData(codecSpecificData);
 
                 streamSpecificBytes = 18 + codecSpecificData.length;
-            } else {
+            }
+            else
+            {
                 /*
                  * Reading video specific information
                  */
-                final VideoStreamChunk videoStreamChunk = new VideoStreamChunk(
-                        chunkLength);
+                final VideoStreamChunk videoStreamChunk = new VideoStreamChunk(chunkLength);
                 result = videoStreamChunk;
 
                 final long pictureWidth = Utils.readUINT32(stream);
@@ -178,9 +183,7 @@ public class StreamChunkReader implements ChunkReader {
              * GUID and chunklen) - streamSpecificBytes(stream type specific
              * data) - 54 (common data)
              */
-            stream
-                    .skip(chunkLength.longValue() - 24 - streamSpecificBytes
-                            - 54);
+            stream.skip(chunkLength.longValue() - 24 - streamSpecificBytes - 54);
         }
         return result;
     }

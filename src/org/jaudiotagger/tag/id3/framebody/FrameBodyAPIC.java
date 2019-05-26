@@ -15,7 +15,7 @@
  */
 package org.jaudiotagger.tag.id3.framebody;
 
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.InvalidTagException;
 import org.jaudiotagger.tag.TagOptionSingleton;
 import org.jaudiotagger.tag.datatype.*;
@@ -152,7 +152,14 @@ public class FrameBodyAPIC extends AbstractID3v2FrameBody implements ID3v24Frame
 
     public String getUserFriendlyValue()
     {
-      return getMimeType()+":"+getDescription()+":"+getImageData().length;
+        if(getImageData()!=null)
+        {
+            return getMimeType() + ":" + getDescription() + ":" + getImageData().length;
+        }
+        else
+        {
+            return getMimeType() + ":" + getDescription() + ":0";
+        }
     }
 
 
@@ -295,7 +302,7 @@ public class FrameBodyAPIC extends AbstractID3v2FrameBody implements ID3v24Frame
     {
         if (isImageUrl())
         {
-            return Utils.getString(((byte[]) getObjectValue(DataTypes.OBJ_PICTURE_DATA)), 0, ((byte[]) getObjectValue(DataTypes.OBJ_PICTURE_DATA)).length, TextEncoding.CHARSET_ISO_8859_1);
+            return new String(((byte[]) getObjectValue(DataTypes.OBJ_PICTURE_DATA)), 0, ((byte[]) getObjectValue(DataTypes.OBJ_PICTURE_DATA)).length, StandardCharsets.ISO_8859_1);
         }
         else
         {

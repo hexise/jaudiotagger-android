@@ -30,15 +30,16 @@ import java.math.BigInteger;
  * Default reader, Reads GUID and size out of an input stream and creates a
  * {@link org.jaudiotagger.audio.asf.data.Chunk}object, finally skips the
  * remaining chunk bytes.
- * 
+ *
  * @author Christian Laireiter
  */
-final class ChunkHeaderReader implements ChunkReader {
+final class ChunkHeaderReader implements ChunkReader
+{
 
     /**
      * The GUID this reader {@linkplain #getApplyingIds() applies to}
      */
-    private final static GUID[] APPLYING = { GUID.GUID_UNSPECIFIED };
+    private final static GUID[] APPLYING = {GUID.GUID_UNSPECIFIED};
 
     /**
      * Default instance.
@@ -47,39 +48,43 @@ final class ChunkHeaderReader implements ChunkReader {
 
     /**
      * Returns an instance of the reader.
-     * 
+     *
      * @return instance.
      */
-    public static ChunkHeaderReader getInstance() {
+    public static ChunkHeaderReader getInstance()
+    {
         return INSTANCE;
     }
 
     /**
      * Hidden Utility class constructor.
      */
-    private ChunkHeaderReader() {
+    private ChunkHeaderReader()
+    {
         // Hidden
     }
 
     /**
      * {@inheritDoc}
      */
-    public boolean canFail() {
+    public boolean canFail()
+    {
         return false;
     }
 
     /**
      * {@inheritDoc}
      */
-    public GUID[] getApplyingIds() {
+    public GUID[] getApplyingIds()
+    {
         return APPLYING.clone();
     }
 
     /**
      * {@inheritDoc}
      */
-    public Chunk read(final GUID guid, final InputStream stream,
-            final long chunkStart) throws IOException {
+    public Chunk read(final GUID guid, final InputStream stream, final long chunkStart) throws IOException
+    {
         final BigInteger chunkLen = Utils.readBig64(stream);
         stream.skip(chunkLen.longValue() - 24);
         return new Chunk(guid, chunkStart, chunkLen);

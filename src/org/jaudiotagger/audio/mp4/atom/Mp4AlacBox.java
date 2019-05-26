@@ -1,14 +1,15 @@
 package org.jaudiotagger.audio.mp4.atom;
 
-import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.generic.Utils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * AlacBox ( Apple Lossless Codec information description box),
  *
- * Normally occurs twice, the first ALAC contaisn the default  values, the second ALAC within contains the real
+ * Normally occurs twice, the first ALAC contains the default  values, the second ALAC within contains the real
  * values for this audio.
  */
 public class Mp4AlacBox extends AbstractMp4Box
@@ -44,18 +45,19 @@ public class Mp4AlacBox extends AbstractMp4Box
     {
         //Skip version/other flags
         dataBuffer.position(dataBuffer.position() + OTHER_FLAG_LENGTH);
+        dataBuffer.order(ByteOrder.BIG_ENDIAN);
 
-        maxSamplePerFrame   = Utils.readUBEInt32(dataBuffer);
-        unknown1            = Utils.readUInt8(dataBuffer);
-        sampleSize          = Utils.readUInt8(dataBuffer);
-        historyMult         = Utils.readUInt8(dataBuffer);
-        initialHistory      = Utils.readUInt8(dataBuffer);
-        kModifier           = Utils.readUInt8(dataBuffer);
-        channels            = Utils.readUInt8(dataBuffer);
-        unknown2            = Utils.readUBEInt16(dataBuffer);
-        maxCodedFrameSize   = Utils.readUBEInt32(dataBuffer);
-        bitRate             = Utils.readUBEInt32(dataBuffer);
-        sampleRate          = Utils.readUBEInt32(dataBuffer);                 
+        maxSamplePerFrame   = dataBuffer.getInt();
+        unknown1            = Utils.u(dataBuffer.get());
+        sampleSize          = Utils.u(dataBuffer.get());
+        historyMult         = Utils.u(dataBuffer.get());
+        initialHistory      = Utils.u(dataBuffer.get());
+        kModifier           = Utils.u(dataBuffer.get());
+        channels            = Utils.u(dataBuffer.get());
+        unknown2            = dataBuffer.getShort();
+        maxCodedFrameSize   = dataBuffer.getInt();
+        bitRate             = dataBuffer.getInt();
+        sampleRate          = dataBuffer.getInt();
     }
 
     public int getMaxSamplePerFrame()

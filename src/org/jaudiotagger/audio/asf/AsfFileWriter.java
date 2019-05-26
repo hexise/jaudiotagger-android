@@ -18,15 +18,16 @@
  */
 package org.jaudiotagger.audio.asf;
 
+import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.asf.data.AsfHeader;
 import org.jaudiotagger.audio.asf.data.ChunkContainer;
 import org.jaudiotagger.audio.asf.data.MetadataContainer;
 import org.jaudiotagger.audio.asf.io.*;
-import org.jaudiotagger.tag.asf.AsfTag;
 import org.jaudiotagger.audio.asf.util.TagConverter;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.generic.AudioFileWriter;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.asf.AsfTag;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -36,29 +37,29 @@ import java.util.List;
 /**
  * This class writes given tags to ASF files containing WMA content. <br>
  * <br>
- * 
+ *
  * @author Christian Laireiter
  */
-public class AsfFileWriter extends AudioFileWriter {
+public class AsfFileWriter extends AudioFileWriter
+{
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected void deleteTag(final RandomAccessFile raf,
-            final RandomAccessFile tempRaf) throws CannotWriteException,
-            IOException {
-        writeTag(new AsfTag(true), raf, tempRaf);
+    protected void deleteTag(Tag tag, final RandomAccessFile raf, final RandomAccessFile tempRaf) throws CannotWriteException, IOException
+    {
+        writeTag(null, new AsfTag(true), raf, tempRaf);
     }
 
-    private boolean[] searchExistence(final ChunkContainer container,
-            final MetadataContainer[] metaContainers) {
+    private boolean[] searchExistence(final ChunkContainer container, final MetadataContainer[] metaContainers)
+    {
         assert container != null;
         assert metaContainers != null;
         final boolean[] result = new boolean[metaContainers.length];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = container.hasChunkByGUID(metaContainers[i]
-                    .getContainerType().getContainerGUID());
+        for (int i = 0; i < result.length; i++)
+        {
+            result[i] = container.hasChunkByGUID(metaContainers[i].getContainerType().getContainerGUID());
         }
         return result;
     }
@@ -67,9 +68,8 @@ public class AsfFileWriter extends AudioFileWriter {
      * {@inheritDoc}
      */
     @Override
-    protected void writeTag(final Tag tag, final RandomAccessFile raf,
-            final RandomAccessFile rafTemp) throws CannotWriteException,
-            IOException {
+    protected void writeTag(AudioFile audioFile, final Tag tag, final RandomAccessFile raf, final RandomAccessFile rafTemp) throws CannotWriteException, IOException
+    {
         /*
          * Since this implementation should not change the structure of the ASF
          * file (locations of content description chunks), we need to read the
@@ -95,32 +95,37 @@ public class AsfFileWriter extends AudioFileWriter {
          */
         // TODO not convinced that we need to copy fields here
         final AsfTag copy = new AsfTag(tag, true);
-        final MetadataContainer[] distribution = TagConverter
-                .distributeMetadata(copy);
-        final boolean[] existHeader = searchExistence(sourceHeader,
-                distribution);
-        final boolean[] existExtHeader = searchExistence(sourceHeader
-                .getExtendedHeader(), distribution);
+        final MetadataContainer[] distribution = TagConverter.distributeMetadata(copy);
+        final boolean[] existHeader = searchExistence(sourceHeader, distribution);
+        final boolean[] existExtHeader = searchExistence(sourceHeader.getExtendedHeader(), distribution);
         // Modifiers for the asf header object
         final List<ChunkModifier> headerModifier = new ArrayList<ChunkModifier>();
         // Modifiers for the asf header extension object
         final List<ChunkModifier> extHeaderModifier = new ArrayList<ChunkModifier>();
-        for (int i = 0; i < distribution.length; i++) {
-            final WriteableChunkModifer modifier = new WriteableChunkModifer(
-                    distribution[i]);
-            if (existHeader[i]) {
+        for (int i = 0; i < distribution.length; i++)
+        {
+            final WriteableChunkModifer modifier = new WriteableChunkModifer(distribution[i]);
+            if (existHeader[i])
+            {
                 // Will remove or modify chunks in ASF header
                 headerModifier.add(modifier);
-            } else if (existExtHeader[i]) {
+            }
+            else if (existExtHeader[i])
+            {
                 // Will remove or modify chunks in extended header
                 extHeaderModifier.add(modifier);
-            } else {
+            }
+            else
+            {
                 // Objects (chunks) will be added here.
-                if (i == 0 || i == 2 || i == 1) {
+                if (i == 0 || i == 2 || i == 1)
+                {
                     // Add content description and extended content description
                     // at header for maximum compatibility
                     headerModifier.add(modifier);
-                } else {
+                }
+                else
+                {
                     // For now, the rest should be created at extended header
                     // since other positions aren't known.
                     extHeaderModifier.add(modifier);
@@ -129,13 +134,11 @@ public class AsfFileWriter extends AudioFileWriter {
         }
         // only addField an AsfExtHeaderModifier, if there is actually something to
         // change (performance)
-        if (!extHeaderModifier.isEmpty()) {
+        if (!extHeaderModifier.isEmpty())
+        {
             headerModifier.add(new AsfExtHeaderModifier(extHeaderModifier));
         }
-        new AsfStreamer()
-                .createModifiedCopy(new RandomAccessFileInputstream(raf),
-                        new RandomAccessFileOutputStream(rafTemp),
-                        headerModifier);
+        new AsfStreamer().createModifiedCopy(new RandomAccessFileInputstream(raf), new RandomAccessFileOutputStream(rafTemp), headerModifier);
     }
 
 }

@@ -1,17 +1,17 @@
 package org.jaudiotagger.audio.flac.metadatablock;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.InvalidFrameException;
 import org.jaudiotagger.tag.TagField;
-import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 import org.jaudiotagger.tag.reference.PictureTypes;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
 
@@ -51,6 +51,7 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
     private int height;
     private int colourDepth;
     private int indexedColouredCount;
+    private int lengthOfPictureInBytes;
     private byte[] imageData;
 
     // Logger Object
@@ -67,11 +68,11 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
 
         //MimeType
         int mimeTypeSize = rawdata.getInt();
-        mimeType = getString(rawdata, mimeTypeSize, "ISO-8859-1");
+        mimeType = getString(rawdata, mimeTypeSize, StandardCharsets.ISO_8859_1.name());
 
         //Description
         int descriptionSize = rawdata.getInt();
-        description = getString(rawdata, descriptionSize, "UTF-8");
+        description = getString(rawdata, descriptionSize, StandardCharsets.UTF_8.name());
 
         //Image width
         width = rawdata.getInt();
@@ -85,9 +86,9 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
         //Indexed Colour Count
         indexedColouredCount = rawdata.getInt();
 
+        lengthOfPictureInBytes =  rawdata.getInt();
         //ImageData
-        int rawdataSize = rawdata.getInt();
-        imageData = new byte[rawdataSize];
+        imageData = new byte[lengthOfPictureInBytes];
         rawdata.get(imageData);
 
         logger.config("Read image:" + this.toString());
@@ -109,15 +110,15 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
      * Construct picture block by reading from file, the header informs us how many bytes we should be reading from
      *
      * @param header
-     * @param raf
-     * @throws java.io.IOException
-     * @throws org.jaudiotagger.tag.InvalidFrameException
+     * @param fc
+     * @throws IOException
+     * @throws InvalidFrameException
      */
     //TODO check for buffer underflows see http://research.eeye.com/html/advisories/published/AD20071115.html
-    public MetadataBlockDataPicture(MetadataBlockHeader header, RandomAccessFile raf) throws IOException, InvalidFrameException
+    public MetadataBlockDataPicture(MetadataBlockHeader header, FileChannel fc ) throws IOException, InvalidFrameException
     {
         ByteBuffer rawdata = ByteBuffer.allocate(header.getDataLength());
-        int bytesRead = raf.getChannel().read(rawdata);
+        int bytesRead = fc.read(rawdata);
         if (bytesRead < header.getDataLength())
         {
             throw new IOException("Unable to read required number of databytes read:" + bytesRead + ":required:" + header.getDataLength());
@@ -171,23 +172,23 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
         return new String(tempbuffer, charset);
     }
 
-    public byte[] getBytes()
+    public ByteBuffer getBytes()
     {
         try
         {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             baos.write(Utils.getSizeBEInt32(pictureType));
             baos.write(Utils.getSizeBEInt32(mimeType.length()));
-            baos.write(mimeType.getBytes("ISO-8859-1"));
+            baos.write(mimeType.getBytes(StandardCharsets.ISO_8859_1));
             baos.write(Utils.getSizeBEInt32(description.length()));
-            baos.write(description.getBytes("UTF-8"));
+            baos.write(description.getBytes(StandardCharsets.UTF_8));
             baos.write(Utils.getSizeBEInt32(width));
             baos.write(Utils.getSizeBEInt32(height));
             baos.write(Utils.getSizeBEInt32(colourDepth));
             baos.write(Utils.getSizeBEInt32(indexedColouredCount));
             baos.write(Utils.getSizeBEInt32(imageData.length));
             baos.write(imageData);
-            return baos.toByteArray();
+            return ByteBuffer.wrap(baos.toByteArray());
 
         }
         catch (IOException ioe)
@@ -198,7 +199,7 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
 
     public int getLength()
     {
-        return getBytes().length;
+        return getBytes().limit();
     }
 
     public int getPictureType()
@@ -256,7 +257,7 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
     {
         if (isImageUrl())
         {
-            return Utils.getString(getImageData(), 0, getImageData().length, TextEncoding.CHARSET_ISO_8859_1);
+            return new String(getImageData(), 0, getImageData().length, StandardCharsets.ISO_8859_1);
         }
         else
         {
@@ -266,7 +267,8 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
 
     public String toString()
     {
-        return PictureTypes.getInstanceOf().getValueForId(pictureType) + ":" + mimeType + ":" + description + ":" + "width:" + width + ":height:" + height + ":colourdepth:" + colourDepth + ":indexedColourCount:" + indexedColouredCount + ":image size in bytes:" + imageData.length;
+        return PictureTypes.getInstanceOf().getValueForId(pictureType) + ":" + mimeType + ":" + description + ":" + "width:" + width + ":height:" + height + ":colourdepth:" + colourDepth + ":indexedColourCount:" + indexedColouredCount
+                + ":image size in bytes:" + lengthOfPictureInBytes + "/" + imageData.length;
     }
 
     /**
@@ -297,15 +299,15 @@ public class MetadataBlockDataPicture implements MetadataBlockData, TagField
      * order to be directly written to the file.<br>
      *
      * @return Binary data representing the current tag field.<br>
-     * @throws java.io.UnsupportedEncodingException
+     * @throws UnsupportedEncodingException
      *          Most tag data represents text. In some cases the underlying
      *          implementation will need to convert the text data in java to
      *          a specific charset encoding. In these cases an
-     *          {@link java.io.UnsupportedEncodingException} may occur.
+     *          {@link UnsupportedEncodingException} may occur.
      */
     public byte[] getRawContent() throws UnsupportedEncodingException
     {
-        return getBytes();
+        return getBytes().array();
     }
 
     /**

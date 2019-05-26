@@ -5,6 +5,7 @@ import org.jaudiotagger.tag.TagTextField;
 import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -46,9 +47,10 @@ public class AggregatedFrame implements TagTextField
      *
      * @return Charset encoding.
      */
-    public String getEncoding()
+    public Charset getEncoding()
     {
-        return TextEncoding.getInstanceOf().getValueForId(frames.iterator().next().getBody().getTextEncoding());
+        final byte textEncoding = frames.iterator().next().getBody().getTextEncoding();
+        return TextEncoding.getInstanceOf().getCharsetForId(textEncoding);
     }
 
     /**
@@ -66,7 +68,7 @@ public class AggregatedFrame implements TagTextField
      *
      * @param encoding charset.
      */
-    public void setEncoding(String encoding)
+    public void setEncoding(Charset encoding)
     {
 
     }

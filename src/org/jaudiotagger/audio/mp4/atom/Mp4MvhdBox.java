@@ -21,6 +21,7 @@ package org.jaudiotagger.audio.mp4.atom;
 import org.jaudiotagger.audio.generic.Utils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * MvhdBox (movie (presentation) header box)
@@ -64,17 +65,19 @@ public class Mp4MvhdBox extends AbstractMp4Box
     public Mp4MvhdBox(Mp4BoxHeader header, ByteBuffer dataBuffer)
     {
         this.header = header;
+        dataBuffer.order(ByteOrder.BIG_ENDIAN);
         byte version = dataBuffer.get(VERSION_FLAG_POS);
 
         if (version == LONG_FORMAT)
         {
-            this.timeScale = Utils.getIntBE(dataBuffer, TIMESCALE_LONG_POS, (TIMESCALE_LONG_POS + TIMESCALE_LENGTH - 1));
-            this.timeLength = Utils.getLongBE(dataBuffer, DURATION_LONG_POS, (DURATION_LONG_POS + DURATION_LONG_LENGTH - 1));
+            timeScale = dataBuffer.getInt(TIMESCALE_LONG_POS);
+            timeLength = dataBuffer.getLong(DURATION_LONG_POS);
+
         }
         else
         {
-            this.timeScale = Utils.getIntBE(dataBuffer, TIMESCALE_SHORT_POS, (TIMESCALE_SHORT_POS + TIMESCALE_LENGTH - 1));
-            this.timeLength = Utils.getIntBE(dataBuffer, DURATION_SHORT_POS, (DURATION_SHORT_POS + DURATION_SHORT_LENGTH - 1));
+            timeScale = dataBuffer.getInt(TIMESCALE_SHORT_POS);
+            timeLength = Utils.u(dataBuffer.getInt(DURATION_SHORT_POS));
         }
     }
 

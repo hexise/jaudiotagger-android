@@ -16,7 +16,7 @@ package org.jaudiotagger.tag.datatype;
 import org.jaudiotagger.tag.id3.framebody.FrameBodySYTC;
 
 /**
- * List of {@link org.jaudiotagger.tag.datatype.SynchronisedTempoCode}s.
+ * List of {@link SynchronisedTempoCode}s.
  *
  * @author <a href="mailto:hs@tagtraum.com">Hendrik Schreiber</a>
  * @version $Id:$
@@ -26,7 +26,7 @@ public class SynchronisedTempoCodeList extends AbstractDataTypeList<Synchronised
 
     /**
      * Mandatory, concretely-typed copy constructor, as required by
-     * {@link org.jaudiotagger.tag.datatype.AbstractDataTypeList#AbstractDataTypeList(org.jaudiotagger.tag.datatype.AbstractDataTypeList)}.
+     * {@link AbstractDataTypeList#AbstractDataTypeList(AbstractDataTypeList)}.
      *
      * @param copy instance to copy
      */

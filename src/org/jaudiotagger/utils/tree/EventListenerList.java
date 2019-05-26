@@ -6,9 +6,12 @@
  */
 package org.jaudiotagger.utils.tree;
 
-import java.io.*;
-import java.util.*;
-import java.lang.reflect.Array; 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.util.EventListener;
 
 /**
  * A class that holds a list of EventListeners.  A single instance

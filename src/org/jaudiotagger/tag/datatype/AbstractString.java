@@ -23,10 +23,13 @@
  */
 package org.jaudiotagger.tag.datatype;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.id3.AbstractTagFrameBody;
 import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 
 /**
@@ -107,9 +110,10 @@ public abstract class AbstractString extends AbstractDataType
     {
         //Try and write to buffer using the CharSet defined by the textEncoding field (note if using UTF16 we dont
         //need to worry about LE,BE at this point it makes no difference)
-        byte textEncoding = this.getBody().getTextEncoding();
-        String charSetName = TextEncoding.getInstanceOf().getValueForId(textEncoding);
-        CharsetEncoder encoder = Charset.forName(charSetName).newEncoder();
+        final byte textEncoding = this.getBody().getTextEncoding();
+        final TextEncoding encoding = TextEncoding.getInstanceOf();
+        final Charset charset = encoding.getCharsetForId(textEncoding);
+        CharsetEncoder encoder = charset.newEncoder();
 
         if (encoder.canEncode((String) value))
         {
@@ -120,5 +124,68 @@ public abstract class AbstractString extends AbstractDataType
             logger.finest("Failed Trying to decode" + value + "with" + encoder.toString());
             return false;
         }
+    }
+
+    /**
+     * If they have specified UTF-16 then decoder works out by looking at BOM
+     * but if missing we have to make an educated guess otherwise just use
+     * specified decoder
+     *
+     * @param inBuffer
+     * @return
+     */
+    protected CharsetDecoder getCorrectDecoder(ByteBuffer inBuffer)
+    {
+        CharsetDecoder decoder=null;
+        if(inBuffer.remaining()<=2)
+        {
+            decoder = getTextEncodingCharSet().newDecoder();
+            decoder.reset();
+            return decoder;
+        }
+
+        if(getTextEncodingCharSet()== StandardCharsets.UTF_16)
+        {
+            if(inBuffer.getChar(0)==0xfffe || inBuffer.getChar(0)==0xfeff)
+            {
+                //Get the Specified Decoder
+                decoder = getTextEncodingCharSet().newDecoder();
+                decoder.reset();
+            }
+            else
+            {
+                if(inBuffer.get(0)==0)
+                {
+                    decoder = StandardCharsets.UTF_16BE.newDecoder();
+                    decoder.reset();
+                }
+                else
+                {
+                    decoder = StandardCharsets.UTF_16LE.newDecoder();
+                    decoder.reset();
+                }
+            }
+        }
+        else
+        {
+            decoder = getTextEncodingCharSet().newDecoder();
+            decoder.reset();
+        }
+        return decoder;
+    }
+
+    /**
+     * Get the text encoding being used.
+     *
+     * The text encoding is defined by the frame body that the text field belongs to.
+     *
+     * @return the text encoding charset
+     */
+    protected Charset getTextEncodingCharSet()
+    {
+        final byte textEncoding = this.getBody().getTextEncoding();
+        final Charset charSetName = TextEncoding.getInstanceOf().getCharsetForId(textEncoding);
+        logger.finest("text encoding:" + textEncoding + " charset:" + charSetName.name());
+        return charSetName;
     }
 }

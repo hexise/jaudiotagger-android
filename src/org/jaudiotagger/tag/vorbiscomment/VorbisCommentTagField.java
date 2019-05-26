@@ -18,19 +18,20 @@
  */
 package org.jaudiotagger.tag.vorbiscomment;
 
-import org.jaudiotagger.audio.generic.Utils;
-import org.jaudiotagger.audio.ogg.util.VorbisHeader;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.TagTextField;
-import static org.jaudiotagger.tag.vorbiscomment.VorbisCommentFieldKey.*;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+
+import static org.jaudiotagger.tag.vorbiscomment.VorbisCommentFieldKey.*;
 
 /**
  * This class represents the name and content of a tag entry in ogg-files.
  * <br>
  *
- * @author @author Raphael Slinckx (KiKiDonK)
+ * @author Raphael Slinckx (KiKiDonK)
  * @author Christian Laireiter (liree)
  */
 public class VorbisCommentTagField implements TagTextField
@@ -138,9 +139,7 @@ public class VorbisCommentTagField implements TagTextField
         System.arraycopy(src, 0, dst, dstOffset, src.length);
     }
 
-    /**
-     * @see TagField#copyContent(TagField)
-     */
+    @Override
     public void copyContent(TagField field)
     {
         if (field instanceof TagTextField)
@@ -149,53 +148,30 @@ public class VorbisCommentTagField implements TagTextField
         }
     }
 
-    /**
-     * This method will try to return the byte representation of the given
-     * string after it has been converted to the given encoding. <br>
-     *
-     * @param s        The string whose converted bytes should be returned.
-     * @param encoding The encoding type to which the string should be converted.
-     * @return If <code>encoding</code> is supported the byte data of the
-     *         given string is returned in that encoding.
-     * @throws UnsupportedEncodingException If the requested encoding is not available.
-     */
-    protected byte[] getBytes(String s, String encoding) throws UnsupportedEncodingException
-    {
-        return s.getBytes(encoding);
-    }
-
-    /**
-     * @see TagTextField#getContent()
-     */
+    @Override
     public String getContent()
     {
         return content;
     }
 
-    /**
-     * @see TagTextField#getEncoding()
-     */
-    public String getEncoding()
+    @Override
+    public Charset getEncoding()
     {
-        return VorbisHeader.CHARSET_UTF_8;
+        return StandardCharsets.UTF_8;
     }
 
-    /**
-     * @see TagField#getId()
-     */
+    @Override
     public String getId()
     {
         return this.id;
     }
 
-    /**
-     * @see TagField#getRawContent()
-     */
+    @Override
     public byte[] getRawContent() throws UnsupportedEncodingException
     {
         byte[] size = new byte[VorbisCommentReader.FIELD_COMMENT_LENGTH_LENGTH];
-        byte[] idBytes = Utils.getDefaultBytes(this.id, "ISO-8859-1");
-        byte[] contentBytes = getBytes(this.content, "UTF-8");
+        byte[] idBytes = this.id.getBytes(StandardCharsets.ISO_8859_1);
+        byte[] contentBytes = this.content.getBytes(StandardCharsets.UTF_8);
         byte[] b = new byte[4 + idBytes.length + 1 + contentBytes.length];
 
         int length = idBytes.length + 1 + contentBytes.length;
@@ -216,17 +192,13 @@ public class VorbisCommentTagField implements TagTextField
         return b;
     }
 
-    /**
-     * @see TagField#isBinary()
-     */
+    @Override
     public boolean isBinary()
     {
         return false;
     }
 
-    /**
-     * @see TagField#isBinary(boolean)
-     */
+    @Override
     public void isBinary(boolean b)
     {
         if (b)
@@ -236,41 +208,34 @@ public class VorbisCommentTagField implements TagTextField
         }
     }
 
-    /**
-     * @see TagField#isCommon()
-     */
+    @Override
     public boolean isCommon()
     {
         return common;
     }
 
-    /**
-     * @see TagField#isEmpty()
-     */
+    @Override
     public boolean isEmpty()
     {
         return this.content.equals("");
     }
 
-    /**
-     * @see TagTextField#setContent(String)
-     */
+    @Override
     public void setContent(String s)
     {
         this.content = s;
     }
 
-    /**
-     * @see TagTextField#setEncoding(String)
-     */
-    public void setEncoding(String s)
+    @Override
+    public void setEncoding(final Charset s)
     {
-        if (s == null || !s.equalsIgnoreCase("UTF-8"))
+        if (!StandardCharsets.UTF_8.equals(s))
         {
             throw new UnsupportedOperationException("The encoding of OggTagFields cannot be " + "changed.(specified to be UTF-8)");
         }
     }
 
+    @Override
     public String toString()
     {
         return getContent();

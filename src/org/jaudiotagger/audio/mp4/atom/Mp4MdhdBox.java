@@ -3,6 +3,7 @@ package org.jaudiotagger.audio.mp4.atom;
 import org.jaudiotagger.audio.generic.Utils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * MdhdBox ( media (stream) header), holds the Sampling Rate used.
@@ -34,7 +35,7 @@ public class Mp4MdhdBox extends AbstractMp4Box
     private static final int LONG_FORMAT = 1;
 
     private int samplingRate;
-
+    private long timeLength;
     /**
      * @param header     header info
      * @param dataBuffer data of box (doesnt include header data)
@@ -42,19 +43,20 @@ public class Mp4MdhdBox extends AbstractMp4Box
     public Mp4MdhdBox(Mp4BoxHeader header, ByteBuffer dataBuffer)
     {
         this.header = header;
-
+        dataBuffer.order(ByteOrder.BIG_ENDIAN);
         byte version = dataBuffer.get(VERSION_FLAG_POS);
 
-        long timeLength;
         if (version == LONG_FORMAT)
         {
-            this.samplingRate = Utils.getIntBE(dataBuffer, TIMESCALE_LONG_POS, (TIMESCALE_LONG_POS + TIMESCALE_LENGTH - 1));
-            timeLength = Utils.getLongBE(dataBuffer, DURATION_LONG_POS, (DURATION_LONG_POS + DURATION_LONG_LENGTH - 1));
+            this.samplingRate = dataBuffer.getInt(TIMESCALE_LONG_POS);
+            timeLength = dataBuffer.getLong(DURATION_LONG_POS);
+
         }
         else
         {
-            this.samplingRate = Utils.getIntBE(dataBuffer, TIMESCALE_SHORT_POS, (TIMESCALE_SHORT_POS + TIMESCALE_LENGTH - 1));
-            timeLength = Utils.getIntBE(dataBuffer, DURATION_SHORT_POS, (DURATION_SHORT_POS + DURATION_SHORT_LENGTH - 1));
+            this.samplingRate = dataBuffer.getInt(TIMESCALE_SHORT_POS);
+            timeLength = Utils.u(dataBuffer.getInt(DURATION_SHORT_POS));
+
         }
     }
 
@@ -63,4 +65,8 @@ public class Mp4MdhdBox extends AbstractMp4Box
         return samplingRate;
     }
 
+    public long getTimeLength()
+    {
+        return timeLength;
+    }
 }

@@ -27,7 +27,6 @@
 package org.jaudiotagger.tag.id3;
 
 import org.jaudiotagger.tag.TagException;
-import org.jaudiotagger.utils.EqualsUtil;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;

@@ -8,13 +8,15 @@ The compiled JAR library works on Android platform, has been tested on API level
 
 <h2>Source</h2>
 
-The source code is based on Jaudiotagger library version 2.2.3.
+The source code is based on Jaudiotagger library version 2.2.6.
 
-Only few changes were made to fit for Android platform. The changes will be listed below.
+Jaudiotagger java library version 2.2.6 is build on JDK 1.8 and use lots of nio features, which are not compatible with Android version lower than API level 26.
+
+This Jaudiotagger library changes all incompatible parts with compatible API calls, which can compile and run on Android API level 14 and above.
 
 For more information about Jaudiotagger, please refer to this link: http://www.jthink.net/jaudiotagger/
 
-<h2>Changes comparing to official library</h2>
+<h2>Main changes comparing to official library</h2>
 
 - org.jaudiotagger.tag.TagOptionSingleton:
 
@@ -40,31 +42,23 @@ For more information about Jaudiotagger, please refer to this link: http://www.j
    
    - org.jaudiotagger.tag.images.ArtworkFactory: now only support AndroidArtwork.
    
-- org.jaudiotagger.utils.tree.DefaultTreeModel:
+- Java nio API calls are refactored:
 
-   Importing from java.awt.* and reference to java.beans.XMLEncoder are removed.
-   
-- org.jaudiotagger.tag.datatype:
+   The try-with-resources statements are replaced with streams, file channel and manually resource releasing.
+   Usages of java.nio.file.Path are replaced by java.io.File.
+   org.jaudiotagger.audio.generic.Permissions and its references are removed.
 
-   In method readByteArray(), only android related logic are kept.
-   
-- org.jaudiotagger.tag.asf.AbstractAsfTagImageField:
+- Java incompatible API change:
 
-   Method getImage() has been removed since it depends on javax.imageio.ImageIO.
-   
-- org.jaudiotagger.audio.mp3.MP3File:
+   javax.imageio.* imports and calls are removed.
+   java.awt.* imports and calls are removed.
+   Character.isAlphabetic() call is changed since it is only available on Android 19.
 
-   Reference to sun.nio.ch.DirectBuffer has been fixed.
-   
-   Fix FileChannel.map() error related to [Android bug 53637](https://code.google.com/p/android/issues/detail?id=53637), returned java.nio.MappedByteBufferAdapter does not work well on Android IceCreamSandwich and JellyBean. Use ByteBuffer.allocate() instead.
-   
 - org.jaudiotagger.logging.LogFormatter:
 
    This class is removed since it is unnecessary for Android platform.
 
-- org.jaudiotagger.tag.reference.GenreTypes
-
-   Support genres 148–191 which were added in Winamp 5.6.
+- References to java.nio.charset.StandardCharsets are replaced with org.jaudiotagger.StandardCharsets, since java.nio.charset.StandardCharsets is only available on Android 19+.
    
 <h2>License</h2>
 

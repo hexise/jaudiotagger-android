@@ -19,9 +19,11 @@ import org.jaudiotagger.FileConstants;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.*;
-import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.datatype.DataTypes;
+import org.jaudiotagger.tag.datatype.Pair;
+import org.jaudiotagger.tag.datatype.PairedTextEncodedStringNullTerminated;
 import org.jaudiotagger.tag.id3.framebody.*;
+import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import org.jaudiotagger.tag.reference.PictureTypes;
 
@@ -182,25 +184,50 @@ public class ID3v23Tag extends AbstractID3v2Tag
         }
     }
 
+    /**
+     * Override to merge TIPL/TMCL into single IPLS frame
+     *
+     * @param newFrame
+     * @param existingFrame
+     */
+    @Override
+    protected void processDuplicateFrame(AbstractID3v2Frame newFrame, AbstractID3v2Frame existingFrame)
+    {
+        //We dont add this new frame we just add the contents to existing frame
+        if(newFrame.getIdentifier().equals(ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE))
+        {
+            PairedTextEncodedStringNullTerminated.ValuePairs oldVps = ((FrameBodyIPLS)(existingFrame).getBody()).getPairing();
+            PairedTextEncodedStringNullTerminated.ValuePairs newVps = ((FrameBodyIPLS)newFrame.getBody()).getPairing();
+            for(Pair next:newVps.getMapping())
+            {
+                oldVps.add(next);
+            }
+        }
+        else
+        {
+            List<AbstractID3v2Frame> list = new ArrayList<AbstractID3v2Frame>();
+            list.add(existingFrame);
+            list.add(newFrame);
+            frameMap.put(newFrame.getIdentifier(), list);
+        }
+    }
 
-
-    protected void addFrame(AbstractID3v2Frame frame)
+    @Override
+    public void addFrame(AbstractID3v2Frame frame)
     {
         try
         {
-            //Special case to handle TDRC frame from V24 that needs breaking up into separate frame in V23
-            if ((frame.getIdentifier().equals(ID3v24Frames.FRAME_ID_YEAR)) && (frame.getBody() instanceof FrameBodyTDRC))
+            if (frame instanceof ID3v23Frame)
             {
-                translateFrame(frame);
-            }
-            else if (frame instanceof ID3v23Frame)
-            {
-                 copyFrameIntoMap(frame.getIdentifier(),frame);
+                copyFrameIntoMap(frame.getIdentifier(), frame);
             }
             else
             {
-                ID3v23Frame newFrame = new ID3v23Frame(frame);
-                copyFrameIntoMap(newFrame.getIdentifier(), newFrame);
+                List<AbstractID3v2Frame> frames = convertFrame(frame);
+                for(AbstractID3v2Frame next:frames)
+                {
+                    copyFrameIntoMap(next.getIdentifier(), next);
+                }
             }
         }
         catch (InvalidFrameException ife)
@@ -209,40 +236,59 @@ public class ID3v23Tag extends AbstractID3v2Tag
         }
     }
 
-    /**
-     * This is used when we need to translate a single frame into multiple frames,
-     * currently required for v24 TDRC frames.
-     * @param frame
-     */
-    //TODO will overwrite any existing TYER or TIME frame, do we ever want multiples of these
-    protected void translateFrame(AbstractID3v2Frame frame)
+    @Override
+    protected List<AbstractID3v2Frame> convertFrame(AbstractID3v2Frame frame) throws InvalidFrameException
     {
-        FrameBodyTDRC tmpBody = (FrameBodyTDRC) frame.getBody();
-        tmpBody.findMatchingMaskAndExtractV3Values();
-        ID3v23Frame newFrame;
-        if (!tmpBody.getYear().equals(""))
+        List<AbstractID3v2Frame> frames = new ArrayList<AbstractID3v2Frame>();
+        if ((frame.getIdentifier().equals(ID3v24Frames.FRAME_ID_YEAR)) && (frame.getBody() instanceof FrameBodyTDRC))
         {
-            newFrame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_TYER);
-            ((FrameBodyTYER) newFrame.getBody()).setText(tmpBody.getYear());
-            logger.config("Adding Frame:" + newFrame.getIdentifier());
-            frameMap.put(newFrame.getIdentifier(), newFrame);
+            //TODO will overwrite any existing TYER or TIME frame, do we ever want multiples of these
+            FrameBodyTDRC tmpBody = (FrameBodyTDRC) frame.getBody();
+            tmpBody.findMatchingMaskAndExtractV3Values();
+            ID3v23Frame newFrame;
+            if (!tmpBody.getYear().equals(""))
+            {
+                newFrame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_TYER);
+                ((FrameBodyTYER) newFrame.getBody()).setText(tmpBody.getYear());
+                frames.add(newFrame);
+            }
+            if (!tmpBody.getDate().equals(""))
+            {
+                newFrame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_TDAT);
+                ((FrameBodyTDAT) newFrame.getBody()).setText(tmpBody.getDate());
+                ((FrameBodyTDAT) newFrame.getBody()).setMonthOnly(tmpBody.isMonthOnly());
+                frames.add(newFrame);
+            }
+            if (!tmpBody.getTime().equals(""))
+            {
+                newFrame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_TIME);
+                ((FrameBodyTIME) newFrame.getBody()).setText(tmpBody.getTime());
+                ((FrameBodyTIME) newFrame.getBody()).setHoursOnly(tmpBody.isHoursOnly());
+                frames.add(newFrame);
+            }
         }
-        if (!tmpBody.getDate().equals(""))
+        //If at later stage we have multiple IPLS frames we have to merge
+        else if ((frame.getIdentifier().equals(ID3v24Frames.FRAME_ID_INVOLVED_PEOPLE)) && (frame.getBody() instanceof FrameBodyTIPL))
         {
-            newFrame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_TDAT);
-            ((FrameBodyTDAT) newFrame.getBody()).setText(tmpBody.getDate());
-            ((FrameBodyTDAT) newFrame.getBody()).setMonthOnly(tmpBody.isMonthOnly());
-            logger.config("Adding Frame:" + newFrame.getIdentifier());
-            frameMap.put(newFrame.getIdentifier(), newFrame);
+            List<Pair> pairs= ((FrameBodyTIPL)frame.getBody()).getPairing().getMapping();
+            AbstractID3v2Frame ipls = new ID3v23Frame((ID3v24Frame)frame,ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE);
+            FrameBodyIPLS iplsBody  = new FrameBodyIPLS(frame.getBody().getTextEncoding(),pairs);
+            ipls.setBody(iplsBody);
+            frames.add(ipls);
         }
-        if (!tmpBody.getTime().equals(""))
+        else if ((frame.getIdentifier().equals(ID3v24Frames.FRAME_ID_MUSICIAN_CREDITS)) && (frame.getBody() instanceof FrameBodyTMCL))
         {
-            newFrame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_TIME);
-            ((FrameBodyTIME) newFrame.getBody()).setText(tmpBody.getTime());
-            ((FrameBodyTIME) newFrame.getBody()).setHoursOnly(tmpBody.isHoursOnly());
-            logger.config("Adding Frame:" + newFrame.getIdentifier());
-            frameMap.put(newFrame.getIdentifier(), newFrame);
+            List<Pair> pairs= ((FrameBodyTMCL)frame.getBody()).getPairing().getMapping();
+            AbstractID3v2Frame ipls = new ID3v23Frame((ID3v24Frame)frame,ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE);
+            FrameBodyIPLS iplsBody  = new FrameBodyIPLS(frame.getBody().getTextEncoding(),pairs);
+            ipls.setBody(iplsBody);
+            frames.add(ipls);
         }
+        else
+        {
+            frames.add(new ID3v23Frame(frame));
+        }
+        return frames;
     }
 
     /**
@@ -574,9 +620,11 @@ public class ID3v23Tag extends AbstractID3v2Tag
             try
             {
                 //Read Frame
-                logger.finest(getLoggingFilename() + ":Looking for next frame at:" + byteBuffer.position());
+                int posBeforeRead = byteBuffer.position();
+                logger.config(getLoggingFilename() + ":Looking for next frame at:" + posBeforeRead);
                 next = new ID3v23Frame(byteBuffer, getLoggingFilename());
                 id = next.getIdentifier();
+                logger.config(getLoggingFilename() + ":Found "+ id+ " at frame at:" + posBeforeRead);
                 loadFrameIntoMap(id, next);
             }
             //Found Padding, no more frames
@@ -754,7 +802,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
      * {@inheritDoc}
      */
     @Override
-    public void write(WritableByteChannel channel) throws IOException
+    public void write(WritableByteChannel channel, int currentTagSize) throws IOException
     {
         logger.config(getLoggingFilename() + ":Writing tag to channel");
 
@@ -768,11 +816,21 @@ public class ID3v23Tag extends AbstractID3v2Tag
             bodyByteBuffer = ID3Unsynchronization.unsynchronize(bodyByteBuffer);
             logger.config(getLoggingFilename() + ":bodybytebuffer:sizeafterunsynchronisation:" + bodyByteBuffer.length);
         }
-        ByteBuffer headerBuffer = writeHeaderToBuffer(0, bodyByteBuffer.length);
+
+        int padding = 0;
+        if(currentTagSize > 0)
+        {
+            int sizeIncPadding = calculateTagSize(bodyByteBuffer.length + TAG_HEADER_LENGTH, (int) currentTagSize);
+            padding = sizeIncPadding - (bodyByteBuffer.length + TAG_HEADER_LENGTH);
+            logger.config(getLoggingFilename() + ":Padding:"+padding);
+        }
+        ByteBuffer headerBuffer = writeHeaderToBuffer(padding, bodyByteBuffer.length);
 
         channel.write(headerBuffer);
         channel.write(ByteBuffer.wrap(bodyByteBuffer));
+        writePadding(channel, padding);
     }
+
 
     /**
      * For representing the MP3File in an XML Format
@@ -829,7 +887,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
         {
             throw new KeyNotFoundException();
         }
-        return super.doCreateTagField(new FrameAndSubId(id3Key.getFrameId(), id3Key.getSubId()), value);
+        return super.doCreateTagField(new FrameAndSubId(null, id3Key.getFrameId(), id3Key.getSubId()), value);
     }
 
     /**
@@ -853,7 +911,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
         }
         else
         {
-            FrameAndSubId frameAndSubId = new FrameAndSubId(id3v23FieldKey.getFrameId(), id3v23FieldKey.getSubId());
+            FrameAndSubId frameAndSubId = new FrameAndSubId(null, id3v23FieldKey.getFrameId(), id3v23FieldKey.getSubId());
             return super.doGetValueAtIndex(frameAndSubId, 0);
         }
     }
@@ -870,7 +928,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
         {
             throw new KeyNotFoundException();
         }
-        super.doDeleteTagField(new FrameAndSubId(id3v23FieldKey.getFrameId(), id3v23FieldKey.getSubId()));
+        super.doDeleteTagField(new FrameAndSubId(null, id3v23FieldKey.getFrameId(), id3v23FieldKey.getSubId()));
     }
 
      /**
@@ -879,7 +937,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
      */
     public void deleteField(String id)
     {
-        super.doDeleteTagField(new FrameAndSubId(id,null));
+        super.doDeleteTagField(new FrameAndSubId(null, id,null));
     }
 
     protected FrameAndSubId getFrameAndSubIdFromGenericKey(FieldKey genericKey)
@@ -893,7 +951,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
         {
             throw new KeyNotFoundException(genericKey.name());
         }
-        return new FrameAndSubId(id3v23FieldKey.getFrameId(), id3v23FieldKey.getSubId());
+        return new FrameAndSubId(genericKey, id3v23FieldKey.getFrameId(), id3v23FieldKey.getSubId());
     }
 
     protected ID3Frames getID3Frames()
@@ -999,19 +1057,25 @@ public class ID3v23Tag extends AbstractID3v2Tag
      * Overridden to allow special handling for mapping YEAR to TYER and TDAT Frames
      *
      * @param genericKey is the generic key
-     * @param value      to store
+     * @param values      to store
      * @return
      * @throws KeyNotFoundException
      * @throws FieldDataInvalidException
      */
     @Override
-    public TagField createField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException
+    public TagField createField(FieldKey genericKey, String... values) throws KeyNotFoundException, FieldDataInvalidException
     {
         if (genericKey == null)
         {
             throw new KeyNotFoundException();
         }
 
+        if (values == null || values[0] == null)
+        {
+            throw new IllegalArgumentException(ErrorMessage.GENERAL_INVALID_NULL_ARGUMENT.getMsg());
+        }
+
+        String value = values[0];
         if (genericKey == FieldKey.GENRE)
         {
             if (value == null)
@@ -1035,7 +1099,6 @@ public class ID3v23Tag extends AbstractID3v2Tag
         }
         else if (genericKey == FieldKey.YEAR)
         {
-
             if(value.length()==1)
             {
                 AbstractID3v2Frame tyer = createFrame(ID3v23Frames.FRAME_ID_V3_TYER);
@@ -1105,7 +1168,7 @@ public class ID3v23Tag extends AbstractID3v2Tag
         }
         else
         {
-            return super.createField(genericKey, value);
+            return super.createField(genericKey, values);
         }
     }
 
@@ -1170,6 +1233,15 @@ public class ID3v23Tag extends AbstractID3v2Tag
             return;
         }
 
+        if(frameId.equals(ID3v23Frames.FRAME_ID_V3_TDAT))
+        {
+            if(frame.getContent().length()==0)
+            {
+                //Discard not useful to complicate by trying to map it
+                logger.warning("TDAT is empty so just ignoring");
+                return;
+            }
+        }
         if (map.containsKey(frameId) || map.containsKey(TyerTdatAggregatedFrame.ID_TYER_TDAT))
         {
             //If we have multiple duplicate frames in a tag separate them with semicolons
@@ -1214,12 +1286,14 @@ public class ID3v23Tag extends AbstractID3v2Tag
     }
 
     /**
-     * Maps the generic key to the id3 key and return the list of values for this field as strings
+     * Overridden because GENRE can need converting of data to ID3v23 format and
+     * YEAR key is specially processed by getFields() for ID3
      *
      * @param genericKey
      * @return
      * @throws KeyNotFoundException
      */
+    @Override
     public List<String> getAll(FieldKey genericKey) throws KeyNotFoundException
     {
         if(genericKey == FieldKey.GENRE)
@@ -1238,11 +1312,61 @@ public class ID3v23Tag extends AbstractID3v2Tag
             }
             return convertedGenres;
         }
+        else if(genericKey == FieldKey.YEAR)
+        {
+            List<TagField> fields = getFields(genericKey);
+            List<String> results = new ArrayList<String>();
+            if (fields != null && fields.size() > 0)
+            {
+                for(TagField next:fields)
+                {
+                    if(next instanceof TagTextField)
+                    {
+                        results.add(((TagTextField)next).getContent());
+                    }
+                }
+            }
+            return results;
+        }
         else
         {
             return super.getAll(genericKey);
         }
     }
 
+    /**
+     * Overridden because YEAR key can be served by TDAT, TYER or special aggreagted frame
+     *
+     * @param genericKey
+     * @return
+     * @throws KeyNotFoundException
+     */
+    @Override
+    public List<TagField> getFields(FieldKey genericKey) throws KeyNotFoundException
+    {
+        if (genericKey == null)
+        {
+            throw new IllegalArgumentException(ErrorMessage.GENERAL_INVALID_NULL_ARGUMENT.getMsg());
+        }
+
+        if(genericKey == FieldKey.YEAR)
+        {
+            AggregatedFrame af = (AggregatedFrame)getFrame(TyerTdatAggregatedFrame.ID_TYER_TDAT);
+            if(af!=null)
+            {
+                List<TagField> list = new ArrayList<TagField>();
+                list.add(af);
+                return list;
+            }
+            else
+            {
+                return super.getFields(genericKey);
+            }
+        }
+        else
+        {
+            return super.getFields(genericKey);
+        }
+    }
 
 }

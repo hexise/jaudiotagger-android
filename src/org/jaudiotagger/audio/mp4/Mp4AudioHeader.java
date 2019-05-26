@@ -4,35 +4,18 @@ import org.jaudiotagger.audio.generic.GenericAudioHeader;
 import org.jaudiotagger.audio.mp4.atom.Mp4EsdsBox;
 
 /**
- * Store some additional attributes not available for all audio types
+ * Store some additional attributes useful for Mp4s
  */
 public class Mp4AudioHeader extends GenericAudioHeader
 {
-    /**
-     * The key for the kind field<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_KIND = "KIND";
+    private Mp4EsdsBox.Kind             kind;
+    private Mp4EsdsBox.AudioProfile     profile;
+    private String                      brand;
 
-    /**
-     * The key for the profile<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_PROFILE = "PROFILE";
-
-
-    /**
-     * The key for the ftyp brand<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_BRAND = "BRAND";
 
     public void setKind(Mp4EsdsBox.Kind kind)
     {
-        content.put(FIELD_KIND, kind);
+       this.kind=kind;
     }
 
     /**
@@ -40,7 +23,7 @@ public class Mp4AudioHeader extends GenericAudioHeader
      */
     public Mp4EsdsBox.Kind getKind()
     {
-        return (Mp4EsdsBox.Kind) content.get(FIELD_KIND);
+        return kind;
     }
 
     /**
@@ -50,7 +33,7 @@ public class Mp4AudioHeader extends GenericAudioHeader
      */
     public void setProfile(Mp4EsdsBox.AudioProfile profile)
     {
-        content.put(FIELD_PROFILE, profile);
+        this.profile=profile;
     }
 
     /**
@@ -58,7 +41,7 @@ public class Mp4AudioHeader extends GenericAudioHeader
      */
     public Mp4EsdsBox.AudioProfile getProfile()
     {
-        return (Mp4EsdsBox.AudioProfile) content.get(FIELD_PROFILE);
+        return profile;
     }
 
     /**
@@ -66,7 +49,7 @@ public class Mp4AudioHeader extends GenericAudioHeader
      */
     public void setBrand(String brand)
     {
-        content.put(FIELD_BRAND, brand);
+        this.brand=brand;
     }
 
 
@@ -75,7 +58,7 @@ public class Mp4AudioHeader extends GenericAudioHeader
      */
     public String getBrand()
     {
-        return (String) content.get(FIELD_BRAND);
+        return brand;
     }
 
 

@@ -83,10 +83,10 @@ public class Lyrics3v1 extends AbstractLyrics3
      * Creates a new Lyrics3v1 datatype.
      *
      * @throws TagNotFoundException
-     * @throws java.io.IOException
+     * @throws IOException
      * @param byteBuffer
      */
-    public Lyrics3v1(ByteBuffer byteBuffer) throws TagNotFoundException, java.io.IOException
+    public Lyrics3v1(ByteBuffer byteBuffer) throws TagNotFoundException, IOException
     {
         try
         {
@@ -159,7 +159,7 @@ public class Lyrics3v1 extends AbstractLyrics3
 
     /**
      * @return
-     * @throws java.lang.UnsupportedOperationException
+     * @throws UnsupportedOperationException
      *
      */
     public Iterator iterator()
@@ -167,7 +167,7 @@ public class Lyrics3v1 extends AbstractLyrics3
         /**
          * @todo Implement this org.jaudiotagger.tag.AbstractMP3Tag abstract method
          */
-        throw new java.lang.UnsupportedOperationException("Method iterator() not yet implemented.");
+        throw new UnsupportedOperationException("Method iterator() not yet implemented.");
     }
 
     /**

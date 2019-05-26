@@ -1,5 +1,6 @@
 package org.jaudiotagger.tag.mp4.field;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.audio.mp4.atom.Mp4BoxHeader;
 import org.jaudiotagger.logging.ErrorMessage;
@@ -15,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 /**
  * Represents reverse dns field, used for custom information
@@ -87,6 +89,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
         this.content    = content;
     }
 
+    @Override
     public Mp4FieldType getFieldType()
     {
         //TODO always assuming text at moment but may not always be the case (though dont have any concrete
@@ -94,6 +97,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
         return Mp4FieldType.TEXT;
     }
 
+    @Override
     protected void build(ByteBuffer data) throws UnsupportedEncodingException
     {
         //Read mean box, set the issuer and skip over data
@@ -129,7 +133,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
         }
     }
 
-
+    @Override
     public void copyContent(TagField field)
     {
         if (field instanceof Mp4TagReverseDnsField)
@@ -140,23 +144,22 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
         }
     }
 
-    /**
-     * @return content
-     */
+    @Override
     public String getContent()
     {
         return content;
     }
 
-
+    @Override
     protected byte[] getDataBytes() throws UnsupportedEncodingException
     {
         return content.getBytes(getEncoding());
     }
 
-    public String getEncoding()
+    @Override
+    public Charset getEncoding()
     {
-        return Mp4BoxHeader.CHARSET_UTF_8;
+        return StandardCharsets.UTF_8;
     }
 
     /**
@@ -165,6 +168,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
      * @return
      * @throws UnsupportedEncodingException
      */
+    @Override
     public byte[] getRawContent() throws UnsupportedEncodingException
     {
         try
@@ -174,14 +178,14 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
             //Create Meanbox data
             byte[] issuerRawData = issuer.getBytes(getEncoding());
             baos.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + Mp4MeanBox.PRE_DATA_LENGTH + issuerRawData.length));
-            baos.write(Utils.getDefaultBytes(Mp4MeanBox.IDENTIFIER, "ISO-8859-1"));
+            baos.write(Mp4MeanBox.IDENTIFIER.getBytes(StandardCharsets.ISO_8859_1));
             baos.write(new byte[]{0, 0, 0, 0});
             baos.write(issuerRawData);
 
             //Create Namebox data
             byte[] nameRawData = descriptor.getBytes(getEncoding());
             baos.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + Mp4NameBox.PRE_DATA_LENGTH + nameRawData.length));
-            baos.write(Utils.getDefaultBytes(Mp4NameBox.IDENTIFIER, "ISO-8859-1"));
+            baos.write(Mp4NameBox.IDENTIFIER.getBytes(StandardCharsets.ISO_8859_1));
             baos.write(new byte[]{0, 0, 0, 0});
             baos.write(nameRawData);
 
@@ -193,7 +197,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
             //Now wrap with reversedns box
             ByteArrayOutputStream outerbaos = new ByteArrayOutputStream();
             outerbaos.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + baos.size()));
-            outerbaos.write(Utils.getDefaultBytes(IDENTIFIER, "ISO-8859-1"));
+            outerbaos.write(IDENTIFIER.getBytes(StandardCharsets.ISO_8859_1));
             outerbaos.write(baos.toByteArray());
             return outerbaos.toByteArray();
 
@@ -205,6 +209,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
         }
     }
 
+    @Override
     public byte[] getRawContentDataOnly() throws UnsupportedEncodingException
     {
         logger.fine("Getting Raw data for:" + getId());
@@ -214,7 +219,7 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] dataRawData = content.getBytes(getEncoding());
             baos.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + Mp4DataBox.PRE_DATA_LENGTH + dataRawData.length));
-            baos.write(Utils.getDefaultBytes(Mp4DataBox.IDENTIFIER, "ISO-8859-1"));
+            baos.write(Mp4DataBox.IDENTIFIER.getBytes(StandardCharsets.ISO_8859_1));
             baos.write(new byte[]{0});
             baos.write(new byte[]{0, 0, (byte) getFieldType().getFileClassId()});
             baos.write(new byte[]{0, 0, 0, 0});
@@ -228,26 +233,31 @@ public class Mp4TagReverseDnsField extends Mp4TagField implements TagTextField
         }
     }
 
+    @Override
     public boolean isBinary()
     {
         return false;
     }
 
+    @Override
     public boolean isEmpty()
     {
-        return this.content.trim().equals("");
+        return "".equals(this.content.trim());
     }
 
+    @Override
     public void setContent(String s)
     {
         this.content = s;
     }
 
-    public void setEncoding(String s)
+    @Override
+    public void setEncoding(Charset s)
     {
         /* Not allowed */
     }
 
+    @Override
     public String toString()
     {
         return content;

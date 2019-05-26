@@ -16,7 +16,7 @@
 package org.jaudiotagger.tag.id3;
 
 import org.jaudiotagger.FileConstants;
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.logging.Hex;
@@ -30,6 +30,7 @@ import org.jaudiotagger.utils.EqualsUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -108,7 +109,7 @@ public class ID3v24Frame extends AbstractID3v2Frame
     }
 
     /**
-     * Copy Constructor:Creates a new ID3v2_4Frame datatype based on another frame.
+     * Copy Constructor:Creates a new ID3v24 frame datatype based on another frame.
      *
      * @param frame
      */
@@ -181,7 +182,23 @@ public class ID3v24Frame extends AbstractID3v2Frame
     }
 
     /**
-     * Creates a new ID3v2_4Frame datatype based on another frame of different version
+     * Partially construct ID3v24 Frame form an IS3v23Frame
+     *
+     * Used for Special Cases
+     *
+     * @param frame
+     * @param identifier
+     * @throws InvalidFrameException
+     */
+    protected ID3v24Frame(ID3v23Frame frame, String identifier) throws InvalidFrameException
+    {
+        this.identifier=identifier;
+        statusFlags = new StatusFlags((ID3v23Frame.StatusFlags) frame.getStatusFlags());
+        encodingFlags = new EncodingFlags(frame.getEncodingFlags().getFlags());
+    }
+
+    /**
+     * Creates a new ID3v24 frame datatype based on another frame of different version
      * Converts the framebody to the equivalent v24 framebody or to UnsupportedFrameBody if identifier
      * is unknown.
      *
@@ -196,13 +213,12 @@ public class ID3v24Frame extends AbstractID3v2Frame
         {
             throw new UnsupportedOperationException("Copy Constructor not called. Please type cast the argument");
         }
-        //Flags
-        if (frame instanceof ID3v23Frame)
+        else if (frame instanceof ID3v23Frame)
         {
             statusFlags = new StatusFlags((ID3v23Frame.StatusFlags) frame.getStatusFlags());
             encodingFlags = new EncodingFlags(frame.getEncodingFlags().getFlags());
         }
-        else
+        else if (frame instanceof ID3v22Frame)
         {
             statusFlags = new StatusFlags();
             encodingFlags = new EncodingFlags();
@@ -223,6 +239,8 @@ public class ID3v24Frame extends AbstractID3v2Frame
         }
         this.frameBody.setHeader(this);
     }
+
+
 
     /**
      * Creates a new ID3v2_4Frame datatype based on Lyrics3.
@@ -698,7 +716,7 @@ public class ID3v24Frame extends AbstractID3v2Frame
         {
             identifier = identifier + ' ';
         }
-        headerBuffer.put(Utils.getDefaultBytes(getIdentifier(), "ISO-8859-1"), 0, FRAME_ID_SIZE);
+        headerBuffer.put(getIdentifier().getBytes(StandardCharsets.ISO_8859_1), 0, FRAME_ID_SIZE);
 
         //Write Frame Size based on size of body buffer (if it has been unsynced then it size
         //will have increased accordingly
@@ -711,20 +729,20 @@ public class ID3v24Frame extends AbstractID3v2Frame
         headerBuffer.put(statusFlags.getWriteFlags());
 
         //Remove any non standard flags
-        ((ID3v24Frame.EncodingFlags) encodingFlags).unsetNonStandardFlags();
+        ((EncodingFlags) encodingFlags).unsetNonStandardFlags();
                 
         //Encoding we only support unsynchronization
         if (unsynchronization)
         {
-            ((ID3v24Frame.EncodingFlags) encodingFlags).setUnsynchronised();
+            ((EncodingFlags) encodingFlags).setUnsynchronised();
         }
         else
         {
-            ((ID3v24Frame.EncodingFlags) encodingFlags).unsetUnsynchronised();
+            ((EncodingFlags) encodingFlags).unsetUnsynchronised();
         }
         //These are not currently supported on write
-        ((ID3v24Frame.EncodingFlags) encodingFlags).unsetCompression();
-        ((ID3v24Frame.EncodingFlags) encodingFlags).unsetDataLengthIndicator();
+        ((EncodingFlags) encodingFlags).unsetCompression();
+        ((EncodingFlags) encodingFlags).unsetDataLengthIndicator();
         headerBuffer.put(encodingFlags.getFlags());
 
         try
@@ -782,7 +800,7 @@ public class ID3v24Frame extends AbstractID3v2Frame
      * Member Class This represents a frame headers Status Flags
      * Make adjustments if necessary based on frame type and specification.
      */
-    class StatusFlags extends AbstractID3v2Frame.StatusFlags
+    public class StatusFlags extends AbstractID3v2Frame.StatusFlags
     {
         public static final String TYPE_TAGALTERPRESERVATION = "typeTagAlterPreservation";
         public static final String TYPE_FILEALTERPRESERVATION = "typeFileAlterPreservation";
@@ -1128,12 +1146,12 @@ public class ID3v24Frame extends AbstractID3v2Frame
      /**
      * Sets the charset encoding used by the field.
      *
-     * @param encoding charset.
-     */
-    public void setEncoding(String encoding)
+      * @param encoding charset.
+      */
+    public void setEncoding(final Charset encoding)
     {
-        Integer encodingId = TextEncoding.getInstanceOf().getIdForValue(encoding);
-        if(encoding!=null)
+        Integer encodingId = TextEncoding.getInstanceOf().getIdForCharset(encoding);
+        if(encodingId!=null)
         {
             if(encodingId <4)
             {

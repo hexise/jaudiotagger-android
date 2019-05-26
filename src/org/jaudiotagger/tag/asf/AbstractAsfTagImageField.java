@@ -3,9 +3,6 @@ package org.jaudiotagger.tag.asf;
 import org.jaudiotagger.audio.asf.data.MetadataDescriptor;
 import org.jaudiotagger.tag.TagField;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-
 /**
  * An <code>AbstractAsfTagImageField</code> is an abstract class for representing tag
  * fields containing image data.<br>

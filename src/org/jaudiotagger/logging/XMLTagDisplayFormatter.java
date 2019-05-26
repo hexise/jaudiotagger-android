@@ -84,7 +84,7 @@ public class XMLTagDisplayFormatter extends AbstractTagDisplayFormatter
             }
             else
             {
-                replacedString.append("#x").append(Character.digit(tempChar, 16));
+                replacedString.append("&#x").append(Integer.toString(Character.codePointAt(xmlData,i),16));
             }
         }
         return xmlCDataTagOpen + replacedString + xmlCDataTagClose;

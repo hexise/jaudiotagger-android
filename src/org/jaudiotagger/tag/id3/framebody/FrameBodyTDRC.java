@@ -152,7 +152,7 @@ public class FrameBodyTDRC extends AbstractFrameBodyTextInfo implements ID3v24Fr
         }
         else
         {
-            if (year != null && !(year.equals("")))
+            if (year != null && !(year.trim().isEmpty()))
             {
                sb.append(formatAndParse(formatYearOut,formatYearIn,year));
             }

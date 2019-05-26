@@ -1,6 +1,6 @@
 package org.jaudiotagger.audio.ogg.util;
 
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 
 import java.util.logging.Logger;
 
@@ -34,7 +34,7 @@ public class VorbisSetupHeader implements VorbisHeader
     {
         int packetType = b[FIELD_PACKET_TYPE_POS];
         logger.fine("packetType" + packetType);
-        String vorbis = Utils.getString(b, FIELD_CAPTURE_PATTERN_POS, FIELD_CAPTURE_PATTERN_LENGTH, "ISO-8859-1");
+        String vorbis = new String(b, FIELD_CAPTURE_PATTERN_POS, FIELD_CAPTURE_PATTERN_LENGTH, StandardCharsets.ISO_8859_1);
         if (packetType == VorbisPacketType.SETUP_HEADER.getType() && vorbis.equals(CAPTURE_PATTERN))
         {
             isValid = true;

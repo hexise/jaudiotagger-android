@@ -1,10 +1,10 @@
 package org.jaudiotagger.tag.id3;
 
-import static org.jaudiotagger.tag.id3.ID3v24Frames.*;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import static org.jaudiotagger.tag.id3.ID3v24Frames.*;
 
 /**
  * Orders frame Ids so that the most important frames are writtne first

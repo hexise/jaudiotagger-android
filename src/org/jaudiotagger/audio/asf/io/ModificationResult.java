@@ -8,10 +8,11 @@ import java.util.Set;
 
 /**
  * Structure to tell the differences occurred by altering a chunk.
- * 
+ *
  * @author Christian Laireiter
  */
-final class ModificationResult {
+final class ModificationResult
+{
 
     /**
      * Stores the difference of bytes.<br>
@@ -33,16 +34,13 @@ final class ModificationResult {
 
     /**
      * Creates an instance.<br>
-     * 
-     * @param chunkCountDiff
-     *            amount of chunks appeared, disappeared
-     * @param bytesDiffer
-     *            amount of bytes added or removed.
-     * @param occurred
-     *            all GUIDs which have been occurred, during processing
+     *
+     * @param chunkCountDiff amount of chunks appeared, disappeared
+     * @param bytesDiffer    amount of bytes added or removed.
+     * @param occurred       all GUIDs which have been occurred, during processing
      */
-    public ModificationResult(final int chunkCountDiff, final long bytesDiffer,
-            final GUID... occurred) {
+    public ModificationResult(final int chunkCountDiff, final long bytesDiffer, final GUID... occurred)
+    {
         assert occurred != null && occurred.length > 0;
         this.chunkDifference = chunkCountDiff;
         this.byteDifference = bytesDiffer;
@@ -51,16 +49,13 @@ final class ModificationResult {
 
     /**
      * Creates an instance.<br>
-     * 
-     * @param chunkCountDiff
-     *            amount of chunks appeared, disappeared
-     * @param bytesDiffer
-     *            amount of bytes added or removed.
-     * @param occurred
-     *            all GUIDs which have been occurred, during processing
+     *
+     * @param chunkCountDiff amount of chunks appeared, disappeared
+     * @param bytesDiffer    amount of bytes added or removed.
+     * @param occurred       all GUIDs which have been occurred, during processing
      */
-    public ModificationResult(final int chunkCountDiff, final long bytesDiffer,
-            final Set<GUID> occurred) {
+    public ModificationResult(final int chunkCountDiff, final long bytesDiffer, final Set<GUID> occurred)
+    {
         this.chunkDifference = chunkCountDiff;
         this.byteDifference = bytesDiffer;
         this.occuredGUIDs.addAll(occurred);
@@ -68,28 +63,31 @@ final class ModificationResult {
 
     /**
      * Returns the difference of bytes.
-     * 
+     *
      * @return the byte difference
      */
-    public long getByteDifference() {
+    public long getByteDifference()
+    {
         return this.byteDifference;
     }
 
     /**
      * Returns the difference of the amount of chunks.
-     * 
+     *
      * @return the chunk count difference
      */
-    public int getChunkCountDifference() {
+    public int getChunkCountDifference()
+    {
         return this.chunkDifference;
     }
 
     /**
      * Returns all GUIDs which have been occurred during processing.
-     * 
+     *
      * @return see description.s
      */
-    public Set<GUID> getOccuredGUIDs() {
+    public Set<GUID> getOccuredGUIDs()
+    {
         return new HashSet<GUID>(this.occuredGUIDs);
     }
 

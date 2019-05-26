@@ -20,8 +20,6 @@ package org.jaudiotagger.audio.generic;
 
 import org.jaudiotagger.audio.AudioHeader;
 
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * This class represents a structure for storing and retrieving information
@@ -36,104 +34,46 @@ import java.util.Set;
  */
 public class GenericAudioHeader implements AudioHeader
 {
+    //Use objects so clearer wherher has been set or not
+    private Long    audioDataLength;
+    private Long    audioDataStartPosition;
+    private Long    audioDataEndPosition;
+    private Integer bitRate;
+    private Integer noOfChannels;
+    private Integer samplingRate;
+    private Integer bitsPerSample;
+    private String  encodingType;
+    private Boolean isVbr = Boolean.TRUE; //TODO this is a weird default
+    private Boolean isLossless;
+    private Double  trackLength;
+    private Long    noOfSamples;
+    private Integer byteRate;
 
-    /**
-     * The key for the Bitrate.({@link Integer})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_BITRATE = "BITRATE";
 
-    /**
-     * The key for the number of audio channels.({@link Integer})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_CHANNEL = "CHANNB";
-
-    /**
-     * The key for the extra encoding information.({@link String})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_INFOS = "INFOS";
-
-    /**
-     * The key for the audio clip duration in seconds. ({@link Float})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_LENGTH = "LENGTH";
-
-    /**
-     * The key for the audio sample rate in &quot;Hz&quot;. ({@link Integer})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_SAMPLERATE = "SAMPLING";
-    
-    /**
-     * The key for the audio bits per sample. ({@link Integer})<br>
-     * 
-     * @see #content
-     */
-    public final static String FIELD_BITSPERSAMPLE = "BITSPERSAMPLE";
-
-    /**
-     * The key for the audio type.({@link String})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_TYPE = "TYPE";
-
-    /**
-     * The key for the VBR flag. ({@link Boolean})<br>
-     *
-     * @see #content
-     */
-    public final static String FIELD_VBR = "VBR";
-
-    /**
-     * Used for WMA files
-     */
-    private boolean isLossless = false;
-
-    /**
-     * This table containts the parameters.<br>
-     */
-    protected HashMap<String, Object> content;
 
     /**
      * Creates an instance with emtpy values.<br>
      */
     public GenericAudioHeader()
     {
-        content = new HashMap<String, Object>(6);
-        content.put(FIELD_BITRATE, -1);
-        content.put(FIELD_CHANNEL, -1);
-        content.put(FIELD_TYPE, "");
-        content.put(FIELD_INFOS, "");
-        content.put(FIELD_SAMPLERATE, -1);
-        content.put(FIELD_BITSPERSAMPLE, -1);
-        content.put(FIELD_LENGTH, (float) -1);
-        content.put(FIELD_VBR, true);
+
     }
 
     public String getBitRate()
     {
-        return content.get(FIELD_BITRATE).toString();
+        return String.valueOf(bitRate);
     }
 
 
     /**
-     * This method returns the bitrate of the represented audio clip in
+     * This method returns the bitRate of the represented audio clip in
      * &quot;Kbps&quot;.<br>
      *
-     * @return The bitrate in Kbps.
+     * @return The bitRate in Kbps.
      */
     public long getBitRateAsNumber()
     {
-        return ((Integer) content.get(FIELD_BITRATE)).longValue();
+        return bitRate;
     }
 
     /**
@@ -144,7 +84,7 @@ public class GenericAudioHeader implements AudioHeader
      */
     public int getChannelNumber()
     {
-        return (Integer) content.get(FIELD_CHANNEL);
+        return noOfChannels;
     }
 
     /**
@@ -162,7 +102,7 @@ public class GenericAudioHeader implements AudioHeader
      */
     public String getEncodingType()
     {
-        return (String) content.get(FIELD_TYPE);
+        return encodingType;
     }
 
     /**
@@ -172,30 +112,21 @@ public class GenericAudioHeader implements AudioHeader
      */
     public String getFormat()
     {
-        return (String) content.get(FIELD_TYPE);
+        return encodingType;
     }
 
-    /**
-     * This method returns some extra information about the encoding.<br>
-     * This may not contain anything for some audio formats.<br>
-     *
-     * @return Some extra information.
-     */
-    public String getExtraEncodingInfos()
-    {
-        return (String) content.get(FIELD_INFOS);
-    }
+
 
     /**
      * This method returns the duration of the represented audio clip in
      * seconds.<br>
      *
-     * @return The duration in seconds.
-     * @see #getPreciseLength()
+     * @return The duration to the nearest seconds.
+     * @see #getPreciseTrackLength()
      */
     public int getTrackLength()
     {
-        return (int) getPreciseLength();
+        return (int) Math.round(getPreciseTrackLength());
     }
 
     /**
@@ -205,9 +136,9 @@ public class GenericAudioHeader implements AudioHeader
      * @return The duration in seconds.
      * @see #getTrackLength()
      */
-    public float getPreciseLength()
+    public double getPreciseTrackLength()
     {
-        return (Float) content.get(FIELD_LENGTH);
+        return trackLength;
     }
 
     /**
@@ -217,20 +148,25 @@ public class GenericAudioHeader implements AudioHeader
      */
     public String getSampleRate()
     {
-        return content.get(FIELD_SAMPLERATE).toString();
+        return String.valueOf(samplingRate);
     }
 
     public int getSampleRateAsNumber()
     {
-        return (Integer) content.get(FIELD_SAMPLERATE);
+        return samplingRate;
     }
     
     /**
      * @return The number of bits per sample
      */
-    public int getBitsPerSample()
+    public int  getBitsPerSample()
     {
-    	return (Integer) content.get(FIELD_BITSPERSAMPLE);
+        //TODO remove bandaid
+        if(bitsPerSample==null)
+        {
+            return -1;
+        }
+    	return bitsPerSample;
     }
 
     /**
@@ -241,7 +177,12 @@ public class GenericAudioHeader implements AudioHeader
      */
     public boolean isVariableBitRate()
     {
-        return (Boolean) content.get(FIELD_VBR);
+        //TODO remove this bandaid
+        if(isVbr==null)
+        {
+            return false;
+        }
+        return isVbr;
     }
 
     /**
@@ -252,27 +193,32 @@ public class GenericAudioHeader implements AudioHeader
      */
     public boolean isLossless()
     {
+        //TODO remove this bandaid
+        if(isLossless==null)
+        {
+            return false;
+        }
         return isLossless;
     }
 
     /**
-     * This Method sets the bitrate in &quot;Kbps&quot;.<br>
+     * This Method sets the bitRate in &quot;Kbps&quot;.<br>
      *
-     * @param bitrate bitrate in kbps.
+     * @param bitRate bitRate in kbps.
      */
-    public void setBitrate(int bitrate)
+    public void setBitRate(int bitRate)
     {
-        content.put(FIELD_BITRATE, bitrate);
+        this.bitRate = bitRate;
     }
 
     /**
      * Sets the number of channels.
      *
-     * @param chanNb number of channels (2 for stereo, 1 for mono).
+     * @param channelMode number of channels (2 for stereo, 1 for mono).
      */
-    public void setChannelNumber(int chanNb)
+    public void setChannelNumber(int channelMode)
     {
-        content.put(FIELD_CHANNEL, chanNb);
+        this.noOfChannels = channelMode;
     }
 
     /**
@@ -284,37 +230,17 @@ public class GenericAudioHeader implements AudioHeader
      */
     public void setEncodingType(String encodingType)
     {
-        content.put(FIELD_TYPE, encodingType);
-    }
-
-    /**
-     * A string containing anything else that might be interesting
-     *
-     * @param infos Extra information.
-     */
-    public void setExtraEncodingInfos(String infos)
-    {
-        content.put(FIELD_INFOS, infos);
+        this.encodingType=encodingType;
     }
 
     /**
      * This method sets the audio duration of the represented clip.<br>
      *
-     * @param length The duration of the audio clip in seconds.
+     * @param length The duration of the audio in seconds (single-precision).
      */
-    public void setLength(int length)
+    public void setPreciseLength(double length)
     {
-        content.put(FIELD_LENGTH, (float) length);
-    }
-
-    /**
-     * This method sets the audio duration of the represented clip.<br>
-     *
-     * @param seconds The duration of the audio clip in seconds (single-precision).
-     */
-    public void setPreciseLength(float seconds)
-    {
-        content.put(FIELD_LENGTH, seconds);
+        this.trackLength = length;
     }
 
     /**
@@ -324,7 +250,7 @@ public class GenericAudioHeader implements AudioHeader
      */
     public void setSamplingRate(int samplingRate)
     {
-        content.put(FIELD_SAMPLERATE, samplingRate);
+        this.samplingRate = samplingRate;
     }
     
     /*
@@ -334,59 +260,151 @@ public class GenericAudioHeader implements AudioHeader
      */
     public void setBitsPerSample(int bitsPerSample)
     {
-    	content.put(FIELD_BITSPERSAMPLE, bitsPerSample);
+    	this.bitsPerSample = bitsPerSample;
     }
+
+    /*
+    * Sets the ByteRate (per second)
+    *
+    * @params ByteRate
+    */
+    public void setByteRate(int byteRate)
+    {
+        this.byteRate = byteRate;
+    }
+
 
     /**
      * Sets the VBR flag for the represented audio clip.<br>
      *
-     * @param b <code>true</code> if VBR.
+     * @param isVbr <code>true</code> if VBR.
      */
-    public void setVariableBitRate(boolean b)
+    public void setVariableBitRate(boolean isVbr)
     {
-        content.put(FIELD_VBR, b);
+        this.isVbr=isVbr;
     }
 
     /**
      * Sets the Lossless flag for the represented audio clip.<br>
      *
-     * @param b <code>true</code> if Lossless.
+     * @param isLossless <code>true</code> if Lossless.
      */
-    public void setLossless(boolean b)
+    public void setLossless(boolean isLossless)
     {
-        isLossless = b;
+        this.isLossless = isLossless;
     }
 
-    /**
-     * Can be used to add additional information
-     *
-     * @param key
-     * @param value
-     */
-    public void setExtra(String key, Object value)
-    {
-        content.put(key, value);
-    }
+
 
     /**
      * Pretty prints this encoding info
      *
-     * @see java.lang.Object#toString()
+     * @see Object#toString()
      */
     public String toString()
     {
-        StringBuffer out = new StringBuffer(50);
-        out.append("Encoding infos content:\n");
-        Set<String> set = content.keySet();
-        for (String key : set)
+        StringBuilder out = new StringBuilder();
+        out.append("Audio Header content:\n");
+        if(audioDataLength!=null)
         {
-            Object val = content.get(key);
-            out.append("\t");
-            out.append(key);
-            out.append(" : ");
-            out.append(val);
-            out.append("\n");
+            out.append("\taudioDataLength:"+audioDataLength+"\n");
         }
-        return out.toString().substring(0, out.length() - 1);
+        if(audioDataStartPosition!=null)
+        {
+            out.append("\taudioDataStartPosition:"+audioDataStartPosition+"\n");
+        }
+        if(audioDataEndPosition!=null)
+        {
+            out.append("\taudioDataEndPosition:"+audioDataEndPosition+"\n");
+        }
+        if(byteRate!=null)
+        {
+            out.append("\tbyteRate:"+byteRate+"\n");
+        }
+        if(bitRate!=null)
+        {
+            out.append("\tbitRate:"+bitRate+"\n");
+        }
+        if(samplingRate!=null)
+        {
+            out.append("\tsamplingRate:"+samplingRate+"\n");
+        }
+        if(bitsPerSample!=null)
+        {
+            out.append("\tbitsPerSample:"+bitsPerSample+"\n");
+        }
+        if(noOfSamples!=null)
+        {
+            out.append("\ttotalNoSamples:"+noOfSamples+"\n");
+        }
+        if(noOfChannels!=null)
+        {
+            out.append("\tnumberOfChannels:"+noOfChannels+"\n");
+        }
+        if(encodingType!=null)
+        {
+            out.append("\tencodingType:"+encodingType+"\n");
+        }
+        if(isVbr!=null)
+        {
+            out.append("\tisVbr:"+isVbr+"\n");
+        }
+        if(isLossless!=null)
+        {
+            out.append("\tisLossless:"+isLossless+"\n");
+        }
+        if(trackLength!=null)
+        {
+            out.append("\ttrackDuration:"+trackLength+"\n");
+        }
+        return out.toString();
+    }
+
+    public Long getAudioDataLength()
+    {
+        return audioDataLength;
+    }
+
+    public void setAudioDataLength(long audioDataLength)
+    {
+        this.audioDataLength = audioDataLength;
+    }
+
+    public Integer getByteRate()
+    {
+        return byteRate;
+    }
+
+    public Long getNoOfSamples()
+    {
+        return noOfSamples;
+    }
+
+    public void setNoOfSamples(Long noOfSamples)
+    {
+        this.noOfSamples = noOfSamples;
+    }
+
+
+    @Override
+    public Long getAudioDataStartPosition()
+    {
+        return audioDataStartPosition;
+    }
+
+    public void setAudioDataStartPosition(Long audioDataStartPosition)
+    {
+        this.audioDataStartPosition = audioDataStartPosition;
+    }
+
+    @Override
+    public Long getAudioDataEndPosition()
+    {
+        return audioDataEndPosition;
+    }
+
+    public void setAudioDataEndPosition(Long audioDataEndPosition)
+    {
+        this.audioDataEndPosition = audioDataEndPosition;
     }
 }

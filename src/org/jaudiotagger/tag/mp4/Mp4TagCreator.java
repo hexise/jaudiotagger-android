@@ -18,6 +18,7 @@
  */
 package org.jaudiotagger.tag.mp4;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.generic.AbstractTagCreator;
 import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.audio.mp4.Mp4AtomIdentifier;
@@ -37,7 +38,7 @@ import java.util.Iterator;
 /**
  * Create raw content of mp4 tag data, concerns itself with atoms upto the ilst atom
  *
- * <p>This level is was selected because the ilst atom can be recreated without reference to existing mp4 fields
+ * <p>This level was selected because the ilst atom can be recreated without reference to existing mp4 fields
  * but fields above this level are dependent upon other information that is not held in the tag.
  *
  * <pre>
@@ -120,7 +121,7 @@ public class Mp4TagCreator extends AbstractTagCreator
                         //Now create the parent Data
                         byte[] data = covrDataBaos.toByteArray();
                         baos.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + data.length));
-                        baos.write(Utils.getDefaultBytes(Mp4FieldKey.ARTWORK.getFieldName(), "ISO-8859-1"));
+                        baos.write(Mp4FieldKey.ARTWORK.getFieldName().getBytes(StandardCharsets.ISO_8859_1));
                         baos.write(data);
                     }
                 }
@@ -133,7 +134,7 @@ public class Mp4TagCreator extends AbstractTagCreator
             //Wrap into ilst box
             ByteArrayOutputStream ilst = new ByteArrayOutputStream();
             ilst.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + baos.size()));
-            ilst.write(Utils.getDefaultBytes(Mp4AtomIdentifier.ILST.getFieldName(), "ISO-8859-1"));
+            ilst.write(Mp4AtomIdentifier.ILST.getFieldName().getBytes(StandardCharsets.ISO_8859_1));
             ilst.write(baos.toByteArray());
 
             //Put into ByteBuffer

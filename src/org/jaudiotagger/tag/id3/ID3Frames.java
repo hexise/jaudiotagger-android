@@ -154,20 +154,18 @@ public abstract class ID3Frames extends AbstractStringStringValuePair
         // Force v23 to v24 These are deprecated and need to do a forced mapping
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_RELATIVE_VOLUME_ADJUSTMENT, ID3v24Frames.FRAME_ID_RELATIVE_VOLUME_ADJUSTMENT2);
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_EQUALISATION, ID3v24Frames.FRAME_ID_EQUALISATION2);
-        forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_IPLS, ID3v24Frames.FRAME_ID_INVOLVED_PEOPLE);
+        forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE, ID3v24Frames.FRAME_ID_INVOLVED_PEOPLE);
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_TDAT, ID3v24Frames.FRAME_ID_YEAR);
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_TIME, ID3v24Frames.FRAME_ID_YEAR);
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_TORY, ID3v24Frames.FRAME_ID_ORIGINAL_RELEASE_TIME);
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_TRDA, ID3v24Frames.FRAME_ID_YEAR);
         forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_TYER, ID3v24Frames.FRAME_ID_YEAR);
 
-        forcev23Tov24.put(ID3v23Frames.FRAME_ID_V3_TYER, ID3v24Frames.FRAME_ID_YEAR);
-
         //Note Force v24 to v23, TDRC is a 1M relationship handled specially.
         // @TODO EQUALISATION
         forcev24Tov23.put(ID3v24Frames.FRAME_ID_RELATIVE_VOLUME_ADJUSTMENT2, ID3v23Frames.FRAME_ID_V3_RELATIVE_VOLUME_ADJUSTMENT);
         //Used to be a special frame now a text frame
-        forcev24Tov23.put(ID3v24Frames.FRAME_ID_INVOLVED_PEOPLE, ID3v23Frames.FRAME_ID_V3_IPLS);
+        forcev24Tov23.put(ID3v24Frames.FRAME_ID_INVOLVED_PEOPLE, ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE);
         //No Mood frame in v23 so use a TXXX frame
         forcev24Tov23.put(ID3v24Frames.FRAME_ID_MOOD, ID3v23Frames.FRAME_ID_V3_USER_DEFINED_INFO);
         //Release time can be mapped to release year (but can only hold year)
@@ -201,13 +199,16 @@ public abstract class ID3Frames extends AbstractStringStringValuePair
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_GENRE, ID3v23Frames.FRAME_ID_V3_GENRE);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_HW_SW_SETTINGS, ID3v23Frames.FRAME_ID_V3_HW_SW_SETTINGS);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_INITIAL_KEY, ID3v23Frames.FRAME_ID_V3_INITIAL_KEY);
-        convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_IPLS, ID3v23Frames.FRAME_ID_V3_IPLS);
+        convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_IPLS, ID3v23Frames.FRAME_ID_V3_INVOLVED_PEOPLE);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_ISRC, ID3v23Frames.FRAME_ID_V3_ISRC);
+        convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_ITUNES_GROUPING, ID3v23Frames.FRAME_ID_V3_ITUNES_GROUPING);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_LANGUAGE, ID3v23Frames.FRAME_ID_V3_LANGUAGE);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_LENGTH, ID3v23Frames.FRAME_ID_V3_LENGTH);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_LINKED_INFO, ID3v23Frames.FRAME_ID_V3_LINKED_INFO);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_LYRICIST, ID3v23Frames.FRAME_ID_V3_LYRICIST);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_MEDIA_TYPE, ID3v23Frames.FRAME_ID_V3_MEDIA_TYPE);
+        convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_MOVEMENT, ID3v23Frames.FRAME_ID_V3_MOVEMENT);
+        convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_MOVEMENT_NO, ID3v23Frames.FRAME_ID_V3_MOVEMENT_NO);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_MPEG_LOCATION_LOOKUP_TABLE, ID3v23Frames.FRAME_ID_V3_MPEG_LOCATION_LOOKUP_TABLE);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_MUSIC_CD_ID, ID3v23Frames.FRAME_ID_V3_MUSIC_CD_ID);
         convertv22Tov23.put(ID3v22Frames.FRAME_ID_V2_ORIGARTIST, ID3v23Frames.FRAME_ID_V3_ORIGARTIST);

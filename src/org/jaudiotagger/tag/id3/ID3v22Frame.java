@@ -15,9 +15,12 @@
  */
 package org.jaudiotagger.tag.id3;
 
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.mp3.MP3File;
-import org.jaudiotagger.tag.*;
+import org.jaudiotagger.tag.EmptyFrameException;
+import org.jaudiotagger.tag.InvalidDataTypeException;
+import org.jaudiotagger.tag.InvalidFrameException;
+import org.jaudiotagger.tag.InvalidFrameIdentifierException;
 import org.jaudiotagger.tag.id3.framebody.AbstractID3v2FrameBody;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyDeprecated;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyUnsupported;
@@ -28,6 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -253,7 +257,7 @@ public class ID3v22Frame extends AbstractID3v2Frame
             throw new UnsupportedOperationException("Copy Constructor not called. Please type cast the argument");
         }
 
-        // If it is a v24 frame is it possible to convert it into a v23 frame, anmd then convert from that
+        // If it is a v24 frame is it possible to convert it into a v23 frame, and then convert from that
         if (frame instanceof ID3v24Frame)
         {
             ID3v23Frame v23Frame = new ID3v23Frame(frame);
@@ -430,7 +434,7 @@ public class ID3v22Frame extends AbstractID3v2Frame
 
         //Write Frame Header
         //Write Frame ID must adjust can only be 3 bytes long
-        headerBuffer.put(Utils.getDefaultBytes(getIdentifier(), "ISO-8859-1"), 0, getFrameIdSize());
+        headerBuffer.put(getIdentifier().getBytes(StandardCharsets.ISO_8859_1), 0, getFrameIdSize());
         encodeSize(headerBuffer, frameBody.getSize());
 
         //Add header to the Byte Array Output Stream
@@ -505,12 +509,12 @@ public class ID3v22Frame extends AbstractID3v2Frame
      /**
      * Sets the charset encoding used by the field.
      *
-     * @param encoding charset.
-     */
-    public void setEncoding(String encoding)
+      * @param encoding charset.
+      */
+    public void setEncoding(final Charset encoding)
     {
-        Integer encodingId = TextEncoding.getInstanceOf().getIdForValue(encoding);
-        if(encoding!=null)
+        Integer encodingId = TextEncoding.getInstanceOf().getIdForCharset(encoding);
+        if(encodingId!=null)
         {
             if(encodingId <2)
             {

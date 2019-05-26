@@ -1,5 +1,6 @@
 package org.jaudiotagger.tag.datatype;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.InvalidDataTypeException;
 import org.jaudiotagger.tag.TagOptionSingleton;
 import org.jaudiotagger.tag.id3.AbstractTagFrameBody;
@@ -72,8 +73,8 @@ public class TextEncodedStringNullTerminated extends AbstractString
         int size;
 
         //Get the Specified Decoder
-        String charSetName = getTextEncodingCharSet();
-        CharsetDecoder decoder = Charset.forName(charSetName).newDecoder();
+        final Charset charset = getTextEncodingCharSet();
+
 
         //We only want to load up to null terminator, data after this is part of different
         //field and it may not be possible to decode it so do the check before we do
@@ -83,7 +84,7 @@ public class TextEncodedStringNullTerminated extends AbstractString
 
         //Latin-1 and UTF-8 strings are terminated by a single-byte null,
         //while UTF-16 and its variants need two bytes for the null terminator.
-        final boolean nullIsOneByte = (charSetName.equals(TextEncoding.CHARSET_ISO_8859_1) || charSetName.equals(TextEncoding.CHARSET_UTF_8));
+        final boolean nullIsOneByte = StandardCharsets.ISO_8859_1 == charset || StandardCharsets.UTF_8 == charset;
 
         boolean isNullTerminatorFound = false;
         while (buffer.hasRemaining())
@@ -178,7 +179,8 @@ public class TextEncodedStringNullTerminated extends AbstractString
             //Decode sliced inBuffer
             ByteBuffer inBuffer = ByteBuffer.wrap(arr, offset, bufferSize).slice();
             CharBuffer outBuffer = CharBuffer.allocate(bufferSize);
-            decoder.reset();
+
+            final CharsetDecoder decoder = getCorrectDecoder(inBuffer);
             CoderResult coderResult = decoder.decode(inBuffer, outBuffer, true);
             if (coderResult.isError())
             {
@@ -203,43 +205,41 @@ public class TextEncodedStringNullTerminated extends AbstractString
         byte[] data;
         //Write to buffer using the CharSet defined by getTextEncodingCharSet()
         //Add a null terminator which will be encoded based on encoding.
-        String charSetName = getTextEncodingCharSet();
+        final Charset charset = getTextEncodingCharSet();
         try
         {
-            if (charSetName.equals(TextEncoding.CHARSET_UTF_16))
+            if (StandardCharsets.UTF_16.equals(charset))
             {
                 if(TagOptionSingleton.getInstance().isEncodeUTF16BomAsLittleEndian())
                 {
-                    charSetName = TextEncoding.CHARSET_UTF_16_LE_ENCODING_FORMAT;
-                    CharsetEncoder encoder = Charset.forName(charSetName).newEncoder();
+                    final CharsetEncoder encoder = StandardCharsets.UTF_16LE.newEncoder();
                     encoder.onMalformedInput(CodingErrorAction.IGNORE);
                     encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
 
                     //Note remember LE BOM is ff fe but this is handled by encoder Unicode char is fe ff
-                    ByteBuffer bb = encoder.encode(CharBuffer.wrap('\ufeff' + (String) value + '\0'));
+                    final ByteBuffer bb = encoder.encode(CharBuffer.wrap('\ufeff' + (String) value + '\0'));
                     data = new byte[bb.limit()];
                     bb.get(data, 0, bb.limit());
                 }
                 else
                 {
-                     charSetName = TextEncoding.CHARSET_UTF_16_BE_ENCODING_FORMAT;
-                     CharsetEncoder encoder = Charset.forName(charSetName).newEncoder();
+                     final CharsetEncoder encoder = StandardCharsets.UTF_16BE.newEncoder();
                      encoder.onMalformedInput(CodingErrorAction.IGNORE);
                      encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
 
-                    //Note  BE BOM will leave as fe ff
-                     ByteBuffer bb = encoder.encode(CharBuffer.wrap('\ufeff' + (String) value + '\0'));
+                     //Note  BE BOM will leave as fe ff
+                     final ByteBuffer bb = encoder.encode(CharBuffer.wrap('\ufeff' + (String) value + '\0'));
                      data = new byte[bb.limit()];
                      bb.get(data, 0, bb.limit());
                 }
             }
             else
             {
-                CharsetEncoder encoder = Charset.forName(charSetName).newEncoder();
+                final CharsetEncoder encoder = charset.newEncoder();
                 encoder.onMalformedInput(CodingErrorAction.IGNORE);
                 encoder.onUnmappableCharacter(CodingErrorAction.IGNORE);
 
-                ByteBuffer bb = encoder.encode(CharBuffer.wrap((String) value + '\0'));
+                final ByteBuffer bb = encoder.encode(CharBuffer.wrap((String) value + '\0'));
                 data = new byte[bb.limit()];
                 bb.get(data, 0, bb.limit());
             }
@@ -247,18 +247,18 @@ public class TextEncodedStringNullTerminated extends AbstractString
         //https://bitbucket.org/ijabz/jaudiotagger/issue/1/encoding-metadata-to-utf-16-can-fail-if
         catch (CharacterCodingException ce)
         {
-            logger.severe(ce.getMessage()+":"+charSetName+":"+value);
+            logger.severe(ce.getMessage()+":"+charset.name()+":"+value);
             throw new RuntimeException(ce);
         }
         setSize(data.length);
         return data;
     }
 
-    protected String getTextEncodingCharSet()
+    protected Charset getTextEncodingCharSet()
     {
-        byte textEncoding = this.getBody().getTextEncoding();
-        String charSetName = TextEncoding.getInstanceOf().getValueForId(textEncoding);
-        logger.finest("text encoding:" + textEncoding + " charset:" + charSetName);
-        return charSetName;
+        final byte textEncoding = this.getBody().getTextEncoding();
+        final Charset charset = TextEncoding.getInstanceOf().getCharsetForId(textEncoding);
+        logger.finest("text encoding:" + textEncoding + " charset:" + charset.name());
+        return charset;
     }
 }

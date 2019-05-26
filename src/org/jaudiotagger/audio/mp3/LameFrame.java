@@ -18,8 +18,8 @@
  */
 package org.jaudiotagger.audio.mp3;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.generic.Utils;
-import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 
 import java.nio.ByteBuffer;
 
@@ -59,7 +59,7 @@ public class LameFrame
      */
     private LameFrame(ByteBuffer lameHeader)
     {
-        encoder = Utils.getString(lameHeader, 0, ENCODER_SIZE, TextEncoding.CHARSET_ISO_8859_1);
+        encoder = Utils.getString(lameHeader, 0, ENCODER_SIZE, StandardCharsets.ISO_8859_1);
     }
 
     /**
@@ -71,7 +71,7 @@ public class LameFrame
     public static LameFrame parseLameFrame(ByteBuffer bb)
     {
         ByteBuffer lameHeader = bb.slice();
-        String id = Utils.getString(lameHeader, 0, LAME_ID_SIZE, TextEncoding.CHARSET_ISO_8859_1);
+        String id = Utils.getString(lameHeader, 0, LAME_ID_SIZE, StandardCharsets.ISO_8859_1);
         lameHeader.rewind();
         if (id.equals(LAME_ID))
         {

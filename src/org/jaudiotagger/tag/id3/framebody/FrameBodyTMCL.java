@@ -1,10 +1,7 @@
 /**
  *  @author : Paul Taylor
- *  @author : Eric Farng
  *
  *  Version @version:$Id$
- *
- *  MusicTag Copyright (C)2003,2004
  *
  *  This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser
  *  General Public  License as published by the Free Software Foundation; either version 2.1 of the License,
@@ -19,32 +16,38 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  *
  * Description:
+ * People List
  *
  */
 package org.jaudiotagger.tag.id3.framebody;
 
 import org.jaudiotagger.tag.InvalidTagException;
+import org.jaudiotagger.tag.datatype.DataTypes;
+import org.jaudiotagger.tag.datatype.Pair;
+import org.jaudiotagger.tag.datatype.PairedTextEncodedStringNullTerminated;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 
-public class FrameBodyTMCL extends AbstractFrameBodyTextInfo implements ID3v24FrameBody
+/**
+ * The 'Musician credits list' is intended as a mapping between instruments and the musician that played it. Every odd field is an
+ * instrument and every even is an artist or a comma delimited list of artists.
+ *
+ */
+public class FrameBodyTMCL extends AbstractFrameBodyPairs implements ID3v24FrameBody
 {
     /**
      * Creates a new FrameBodyTMCL datatype.
      */
     public FrameBodyTMCL()
     {
-    }
-
-    public FrameBodyTMCL(FrameBodyTMCL body)
-    {
-        super(body);
+        super();
     }
 
     /**
-     * Creates a new FrameBodyTMCL datatype.
+     * Creates a new FrameBodyTMCL data type.
      *
      * @param textEncoding
      * @param text
@@ -55,7 +58,7 @@ public class FrameBodyTMCL extends AbstractFrameBodyTextInfo implements ID3v24Fr
     }
 
     /**
-     * Creates a new FrameBodyTMCL datatype.
+     * Creates a new FrameBodyTMCL data type.
      *
      * @param byteBuffer
      * @param frameSize
@@ -67,6 +70,34 @@ public class FrameBodyTMCL extends AbstractFrameBodyTextInfo implements ID3v24Fr
     }
 
     /**
+     * Convert from V3 to V4 Frame
+     *
+     * @param body
+     */
+    public FrameBodyTMCL(FrameBodyIPLS body)
+    {
+        setObjectValue(DataTypes.OBJ_TEXT_ENCODING, body.getTextEncoding());
+        setObjectValue(DataTypes.OBJ_TEXT, body.getPairing());
+    }
+
+    /**
+     * Construct from a set of pairs
+     *
+     * @param textEncoding
+     * @param pairs
+     */
+    public FrameBodyTMCL(byte textEncoding, List<Pair> pairs)
+    {
+        setObjectValue(DataTypes.OBJ_TEXT_ENCODING, textEncoding);
+        PairedTextEncodedStringNullTerminated.ValuePairs values = new PairedTextEncodedStringNullTerminated.ValuePairs();
+        for(Pair next:pairs)
+        {
+            values.add(next);
+        }
+        setObjectValue(DataTypes.OBJ_TEXT, values);
+    }
+
+    /**
      * The ID3v2 frame identifier
      *
      * @return the ID3v2 frame identifier  for this frame type
@@ -75,4 +106,6 @@ public class FrameBodyTMCL extends AbstractFrameBodyTextInfo implements ID3v24Fr
     {
         return ID3v24Frames.FRAME_ID_MUSICIAN_CREDITS;
     }
+
 }
+

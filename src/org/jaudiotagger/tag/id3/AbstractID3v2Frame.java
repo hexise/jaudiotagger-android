@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.logging.Level;
 
 /**
@@ -351,19 +352,23 @@ public abstract class AbstractID3v2Frame extends AbstractTagFrame implements Tag
     {
         byte[] buffer = new byte[getFrameIdSize()];
 
-        if (byteBuffer.position() + getFrameHeaderSize() >= byteBuffer.limit())
-        {
-            logger.warning(getLoggingFilename() + ":" + "No space to find another frame:");
-            throw new InvalidFrameException(getLoggingFilename() + ":" + "No space to find another frame");
-        }
-
         //Read the Frame Identifier
-        byteBuffer.get(buffer, 0, getFrameIdSize());
+        if(getFrameIdSize()<=byteBuffer.remaining())
+        {
+            byteBuffer.get(buffer, 0, getFrameIdSize());
+        }
 
         if(isPadding(buffer))
         {
             throw new PaddingException(getLoggingFilename() + ":only padding found");
         }
+
+        if ((getFrameHeaderSize() - getFrameIdSize()) > byteBuffer.remaining())
+        {
+            logger.warning(getLoggingFilename() + ":" + "No space to find another frame:");
+            throw new InvalidFrameException(getLoggingFilename() + ":" + "No space to find another frame");
+        }
+
 
         identifier = new String(buffer);
         logger.fine(getLoggingFilename() + ":" + "Identifier is" + identifier);
@@ -631,9 +636,10 @@ public abstract class AbstractID3v2Frame extends AbstractTagFrame implements Tag
      *
      * @return Charset encoding.
      */
-    public String getEncoding()
+    public Charset getEncoding()
     {
-        return TextEncoding.getInstanceOf().getValueForId(this.getBody().getTextEncoding());
+        final byte textEncoding = this.getBody().getTextEncoding();
+        return TextEncoding.getInstanceOf().getCharsetForId(textEncoding);
     }
 
     /**

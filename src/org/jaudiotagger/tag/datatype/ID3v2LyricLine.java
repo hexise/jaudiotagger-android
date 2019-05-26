@@ -23,7 +23,7 @@
  */
 package org.jaudiotagger.tag.datatype;
 
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.InvalidDataTypeException;
 import org.jaudiotagger.tag.id3.AbstractTagFrameBody;
 
@@ -126,7 +126,7 @@ public class ID3v2LyricLine extends AbstractDataType
         }
 
         //offset += ();
-        text = Utils.getString(arr, offset, arr.length - offset - 4, "ISO-8859-1");
+        text = new String(arr, offset, arr.length - offset - 4, StandardCharsets.ISO_8859_1);
 
         //text = text.substring(0, text.length() - 5);
         timeStamp = 0;

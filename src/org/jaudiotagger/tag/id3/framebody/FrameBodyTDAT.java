@@ -36,6 +36,13 @@ import java.nio.ByteBuffer;
  */
 public class FrameBodyTDAT extends AbstractFrameBodyTextInfo implements ID3v23FrameBody
 {
+    public static final int DATA_SIZE = 4;
+    public static final int DAY_START = 0;
+    public static final int DAY_END = 2;
+    public static final int MONTH_START = 2;
+    public static final int MONTH_END = 4;
+
+
     private boolean monthOnly;
 
     /**

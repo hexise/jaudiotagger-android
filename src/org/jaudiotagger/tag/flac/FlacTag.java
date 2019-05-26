@@ -1,17 +1,16 @@
 package org.jaudiotagger.tag.flac;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.flac.metadatablock.MetadataBlockDataPicture;
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.logging.ErrorMessage;
 import org.jaudiotagger.tag.*;
 import org.jaudiotagger.tag.images.Artwork;
-import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 import org.jaudiotagger.tag.images.ArtworkFactory;
-import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.reference.PictureTypes;
-import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentFieldKey;
-import org.jaudiotagger.logging.ErrorMessage;
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -123,16 +122,128 @@ public class FlacTag implements Tag
         return (tag == null || tag.isEmpty()) && images.size() == 0;
     }
 
-    public void setField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException
+    @Override
+    public void setField(FieldKey genericKey, String... values) throws KeyNotFoundException, FieldDataInvalidException
     {
-        TagField tagfield = createField(genericKey,value);
-        setField(tagfield);
+        if (values == null || values[0] == null)
+        {
+            throw new IllegalArgumentException(ErrorMessage.GENERAL_INVALID_NULL_ARGUMENT.getMsg());
+        }
+        String value = values[0];
+        if(genericKey==FieldKey.ALBUM_ARTIST)
+        {
+            switch(TagOptionSingleton.getInstance().getVorbisAlbumArtistSaveOptions())
+            {
+                case WRITE_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(genericKey, value);
+                    setField(tagfield);
+                    return;
+                }
+
+                case WRITE_JRIVER_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER, value);
+                    setField(tagfield);
+                    return;
+                }
+
+                case WRITE_ALBUMARTIST_AND_DELETE_JRIVER_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(genericKey, value);
+                    setField(tagfield);
+                    deleteField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER.getFieldName());
+                    return;
+                }
+
+                case WRITE_JRIVER_ALBUMARTIST_AND_DELETE_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER, value);
+                    setField(tagfield);
+                    deleteField(VorbisCommentFieldKey.ALBUMARTIST.getFieldName());
+                    return;
+                }
+                case WRITE_BOTH:
+                {
+                    TagField tagfield1 = createField(genericKey, value);
+                    setField(tagfield1);
+                    TagField tagfield2 = createField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER, value);
+                    setField(tagfield2);
+                    return;
+                }
+
+            }
+        }
+        else
+        {
+            TagField tagfield = createField(genericKey, value);
+            setField(tagfield);
+        }
     }
 
-    public void addField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException
+    /**
+     * Create new field and add it to the tag
+     *
+     * @param genericKey
+     * @param values
+     * @throws KeyNotFoundException
+     * @throws FieldDataInvalidException
+     */
+    @Override
+    public void addField(FieldKey genericKey, String... values) throws KeyNotFoundException, FieldDataInvalidException
     {
-        TagField tagfield = createField(genericKey,value);
-        addField(tagfield);
+        if (values == null || values[0] == null)
+        {
+            throw new IllegalArgumentException(ErrorMessage.GENERAL_INVALID_NULL_ARGUMENT.getMsg());
+        }
+        String value = values[0];
+        if(genericKey==FieldKey.ALBUM_ARTIST)
+        {
+            switch(TagOptionSingleton.getInstance().getVorbisAlbumArtistSaveOptions())
+            {
+                case WRITE_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(genericKey, value);
+                    addField(tagfield);
+                }
+
+                case WRITE_JRIVER_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER, value);
+                    addField(tagfield);
+                    return;
+                }
+                case WRITE_ALBUMARTIST_AND_DELETE_JRIVER_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(genericKey, value);
+                    addField(tagfield);
+                    deleteField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER.getFieldName());
+                    return;
+                }
+
+                case WRITE_JRIVER_ALBUMARTIST_AND_DELETE_ALBUMARTIST:
+                {
+                    TagField tagfield = createField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER, value);
+                    addField(tagfield);
+                    deleteField(VorbisCommentFieldKey.ALBUMARTIST.getFieldName());
+                    return;
+                }
+                case WRITE_BOTH:
+                {
+                    TagField tagfield1 = createField(genericKey, value);
+                    addField(tagfield1);
+                    TagField tagfield2 = createField(VorbisCommentFieldKey.ALBUMARTIST_JRIVER, value);
+                    addField(tagfield2);
+                    return;
+                }
+
+            }
+        }
+        else
+        {
+            TagField tagfield = createField(genericKey, value);
+            addField(tagfield);
+        }
     }
 
     /**
@@ -185,7 +296,7 @@ public class FlacTag implements Tag
         }
     }
 
-    public TagField createField(FieldKey genericKey, String value) throws KeyNotFoundException, FieldDataInvalidException
+    public TagField createField(FieldKey genericKey, String... value) throws KeyNotFoundException, FieldDataInvalidException
     {
         if (genericKey.equals(FieldKey.COVER_ART))
         {
@@ -345,7 +456,8 @@ public class FlacTag implements Tag
        return getFieldCount();
     }
 
-    public boolean setEncoding(String enc) throws FieldDataInvalidException
+    @Override
+    public boolean setEncoding(Charset enc) throws FieldDataInvalidException
     {
         return tag.setEncoding(enc);
     }
@@ -385,7 +497,7 @@ public class FlacTag implements Tag
     public TagField createLinkedArtworkField(String url)
     {
         //Add to image list
-        return new MetadataBlockDataPicture(Utils.getDefaultBytes(url, TextEncoding.CHARSET_ISO_8859_1), PictureTypes.DEFAULT_ID, MetadataBlockDataPicture.IMAGE_IS_URL, "", 0, 0, 0, 0);
+        return new MetadataBlockDataPicture(url.getBytes(StandardCharsets.ISO_8859_1), PictureTypes.DEFAULT_ID, MetadataBlockDataPicture.IMAGE_IS_URL, "", 0, 0, 0, 0);
     }
 
      /**
@@ -397,8 +509,8 @@ public class FlacTag implements Tag
     {
         if(artwork.isLinked())
         {
-             return new MetadataBlockDataPicture(
-                    Utils.getDefaultBytes(artwork.getImageUrl(), TextEncoding.CHARSET_ISO_8859_1),
+            return new MetadataBlockDataPicture(
+                    artwork.getImageUrl().getBytes(StandardCharsets.ISO_8859_1),
                     artwork.getPictureType(),
                     MetadataBlockDataPicture.IMAGE_IS_URL,
                     "",
@@ -510,4 +622,10 @@ public class FlacTag implements Tag
     {
         return tag.createCompilationField(value);
     }
+
+    public String toString()
+    {
+        return "FLAC " + getVorbisCommentTag();
+    }
+
 }

@@ -1,11 +1,8 @@
 package org.jaudiotagger.tag.asf;
 
-import org.jaudiotagger.audio.asf.data.ContentBranding;
-
 import org.jaudiotagger.audio.asf.data.ContainerType;
+import org.jaudiotagger.audio.asf.data.ContentBranding;
 import org.jaudiotagger.audio.asf.data.MetadataDescriptor;
-import org.jaudiotagger.tag.asf.AbstractAsfTagImageField;
-import org.jaudiotagger.tag.asf.AsfFieldKey;
 
 /**
  * This field represents the image content of the banner image which is stored

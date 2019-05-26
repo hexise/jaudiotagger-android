@@ -402,7 +402,9 @@ public class ID3Tags
         }
         if ((j <= str.length()) && (j > i))
         {
-            num = Long.parseLong(str.substring(i, j));
+        	String toParseNumberFrom = str.substring(i, j);
+        	if(!toParseNumberFrom.equals("-")) num = Long.parseLong(toParseNumberFrom);
+        	else throw new TagException("Unable to find integer in string: " + str);
         }
         else
         {

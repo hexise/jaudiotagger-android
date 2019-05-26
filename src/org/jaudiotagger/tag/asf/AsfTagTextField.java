@@ -4,8 +4,8 @@ import org.jaudiotagger.audio.asf.data.AsfHeader;
 import org.jaudiotagger.audio.asf.data.MetadataDescriptor;
 import org.jaudiotagger.audio.asf.util.Utils;
 import org.jaudiotagger.tag.TagTextField;
-import org.jaudiotagger.tag.asf.AsfFieldKey;
-import org.jaudiotagger.tag.asf.AsfTagField;
+
+import java.nio.charset.Charset;
 
 /**
  * Represents a tag text field for ASF fields.<br>
@@ -55,18 +55,14 @@ public class AsfTagTextField extends AsfTagField implements TagTextField {
         toWrap.setString(value);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public String getContent() {
         return getDescriptor().getString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public String getEncoding() {
-        return AsfHeader.ASF_CHARSET.name();
+    @Override
+    public Charset getEncoding() {
+        return AsfHeader.ASF_CHARSET;
     }
 
     /**
@@ -77,18 +73,14 @@ public class AsfTagTextField extends AsfTagField implements TagTextField {
         return Utils.isBlank(getContent());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    @Override
     public void setContent(final String content) {
         getDescriptor().setString(content);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void setEncoding(final String encoding) {
-        if (!AsfHeader.ASF_CHARSET.name().equals(encoding)) {
+    @Override
+    public void setEncoding(final Charset encoding) {
+        if (!AsfHeader.ASF_CHARSET.equals(encoding)) {
             throw new IllegalArgumentException(
                     "Only UTF-16LE is possible with ASF.");
         }

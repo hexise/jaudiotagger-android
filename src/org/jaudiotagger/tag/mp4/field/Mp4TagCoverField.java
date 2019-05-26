@@ -19,12 +19,11 @@
 package org.jaudiotagger.tag.mp4.field;
 
 import org.jaudiotagger.audio.mp4.atom.Mp4BoxHeader;
+import org.jaudiotagger.logging.ErrorMessage;
+import org.jaudiotagger.tag.id3.valuepair.ImageFormats;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.atom.Mp4DataBox;
 import org.jaudiotagger.tag.mp4.atom.Mp4NameBox;
-import org.jaudiotagger.tag.reference.PictureTypes;
-import org.jaudiotagger.tag.id3.valuepair.ImageFormats;
-import org.jaudiotagger.logging.ErrorMessage;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;

@@ -22,7 +22,9 @@ public enum Tagger
     BEATUNES(11,"Beatunes"),
     SONGBIRD(12,"Songbird"),
     JRIVER(13,"JRiver"),
-    GODFATHER(14,"The Godfather");
+    GODFATHER(14,"The Godfather"),
+    MUSICHI(15, "Musichi"),
+    ;
 
     private int compatability;
     private String desc;

@@ -4,7 +4,6 @@ import org.jaudiotagger.audio.flac.metadatablock.MetadataBlockDataPicture;
 import org.jaudiotagger.tag.id3.valuepair.ImageFormats;
 import org.jaudiotagger.tag.reference.PictureTypes;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -116,7 +115,7 @@ public class AndroidArtwork implements Artwork
      * Create Artwork from File
      *
      * @param file
-     * @throws java.io.IOException
+     * @throws IOException
      */
     public void setFromFile(File file)  throws IOException
     {
@@ -136,7 +135,7 @@ public class AndroidArtwork implements Artwork
      *
      * @param file
      * @return
-     * @throws java.io.IOException
+     * @throws IOException
      */
     public static AndroidArtwork createArtworkFromFile(File file)  throws IOException
     {
@@ -162,7 +161,7 @@ public class AndroidArtwork implements Artwork
        * Create Linked Artwork from URL
        *
        * @param url
-       * @throws java.io.IOException
+       * @throws IOException
        */
       public void setLinkedFromURL(String url)  throws IOException
       {

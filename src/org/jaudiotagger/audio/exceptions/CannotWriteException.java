@@ -39,7 +39,7 @@ public class CannotWriteException extends Exception
      * (overridden)
      *
      * @param message
-     * @see Exception#Exception(java.lang.String)
+     * @see Exception#Exception(String)
      */
     public CannotWriteException(String message)
     {
@@ -51,7 +51,7 @@ public class CannotWriteException extends Exception
      *
      * @param message
      * @param cause
-     * @see Exception#Exception(java.lang.String,java.lang.Throwable)
+     * @see Exception#Exception(String,Throwable)
      */
     public CannotWriteException(String message, Throwable cause)
     {
@@ -62,7 +62,7 @@ public class CannotWriteException extends Exception
      * (overridden)
      *
      * @param cause
-     * @see Exception#Exception(java.lang.Throwable)
+     * @see Exception#Exception(Throwable)
      */
     public CannotWriteException(Throwable cause)
     {

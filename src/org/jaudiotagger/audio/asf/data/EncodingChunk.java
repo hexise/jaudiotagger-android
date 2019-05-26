@@ -31,10 +31,11 @@ import java.util.List;
  * Since the needed parameters were found in other chunks the implementation of
  * this class was paused. <br>
  * TODO complete analysis.
- * 
+ *
  * @author Christian Laireiter
  */
-public class EncodingChunk extends Chunk {
+public class EncodingChunk extends Chunk
+{
 
     /**
      * The read strings.
@@ -43,32 +44,33 @@ public class EncodingChunk extends Chunk {
 
     /**
      * Creates an instance.
-     * 
-     * @param chunkLen
-     *            Length of current chunk.
+     *
+     * @param chunkLen Length of current chunk.
      */
-    public EncodingChunk(final BigInteger chunkLen) {
+    public EncodingChunk(final BigInteger chunkLen)
+    {
         super(GUID.GUID_ENCODING, chunkLen);
         this.strings = new ArrayList<String>();
     }
 
     /**
      * This method appends a String.
-     * 
-     * @param toAdd
-     *            String to add.
+     *
+     * @param toAdd String to add.
      */
-    public void addString(final String toAdd) {
+    public void addString(final String toAdd)
+    {
         this.strings.add(toAdd);
     }
 
     /**
      * This method returns a collection of all {@linkplain String Strings} which
      * were added due {@link #addString(String)}.
-     * 
+     *
      * @return Inserted Strings.
      */
-    public Collection<String> getStrings() {
+    public Collection<String> getStrings()
+    {
         return new ArrayList<String>(this.strings);
     }
 
@@ -76,13 +78,13 @@ public class EncodingChunk extends Chunk {
      * {@inheritDoc}
      */
     @Override
-    public String prettyPrint(final String prefix) {
-        final StringBuilder result = new StringBuilder(super
-                .prettyPrint(prefix));
+    public String prettyPrint(final String prefix)
+    {
+        final StringBuilder result = new StringBuilder(super.prettyPrint(prefix));
         this.strings.iterator();
-        for (final String string : this.strings) {
-            result.append(prefix).append("  | : ").append(string).append(
-                    Utils.LINE_SEPARATOR);
+        for (final String string : this.strings)
+        {
+            result.append(prefix).append("  | : ").append(string).append(Utils.LINE_SEPARATOR);
         }
         return result.toString();
     }

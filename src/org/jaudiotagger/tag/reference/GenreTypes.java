@@ -30,12 +30,12 @@ import java.util.Map;
  * Genre list
  *
  * <p>This is the IDv1 list with additional values as defined by Winamp, this list is also used in Mp4
- * files, note iTunes doesn't understand genres above MAX_STANDARD_GENRE_ID, Winamp does
+ * files, note iTunes doesn't understand genres above MAX_STANDARD_GENRE_ID, Winamp does.
  */
 public class GenreTypes extends AbstractIntStringValuePair
 {
-    private static int MAX_STANDARD_GENRE_ID    = 125;
-    private static int MAX_GENRE_ID             = 147;
+    private static final int MAX_STANDARD_GENRE_ID    = 125;
+    private static final int MAX_GENRE_ID             = 191;
 
     /**
      * @return the maximum genreId that is part of the official Standard, genres above this were added by
@@ -201,7 +201,7 @@ public class GenreTypes extends AbstractIntStringValuePair
         idToValue.put(130, "Terror");
         idToValue.put(131, "Indie");
         idToValue.put(132, "BritPop");
-        idToValue.put(133, "Negerpunk");
+        idToValue.put(133, "Negerpunk"); // to say the least - this name is problematic
         idToValue.put(134, "Polsk Punk");
         idToValue.put(135, "Beat");
         idToValue.put(136, "Christian Gangsta Rap");
@@ -216,11 +216,13 @@ public class GenreTypes extends AbstractIntStringValuePair
         idToValue.put(145, "Anime");
         idToValue.put(146, "JPop");
         idToValue.put(147, "SynthPop");
+
+        // additional Winamp 5.6 values taken from http://en.wikipedia.org/wiki/ID3#Winamp_Extensions
         idToValue.put(148, "Abstract");
         idToValue.put(149, "Art Rock");
         idToValue.put(150, "Baroque");
         idToValue.put(151, "Bhangra");
-        idToValue.put(152, "Big beat");
+        idToValue.put(152, "Big Beat");
         idToValue.put(153, "Breakbeat");
         idToValue.put(154, "Chillout");
         idToValue.put(155, "Downtempo");
@@ -252,10 +254,10 @@ public class GenreTypes extends AbstractIntStringValuePair
         idToValue.put(181, "World Music");
         idToValue.put(182, "Neoclassical");
         idToValue.put(183, "Audiobook");
-        idToValue.put(184, "Audio theatre");
+        idToValue.put(184, "Audio Theatre");
         idToValue.put(185, "Neue Deutsche Welle");
         idToValue.put(186, "Podcast");
-        idToValue.put(187, "Indie-Rock");
+        idToValue.put(187, "Indie Rock");
         idToValue.put(188, "G-Funk");
         idToValue.put(189, "Dubstep");
         idToValue.put(190, "Garage Rock");
@@ -273,8 +275,9 @@ public class GenreTypes extends AbstractIntStringValuePair
 
     /**
      * Get Id for name, match is not case sensitive
-     * @param name
-     * @return
+     *
+     * @param name genre name
+     * @return id or {@code null}, if not found
      */
     public Integer getIdForName(String name)
     {

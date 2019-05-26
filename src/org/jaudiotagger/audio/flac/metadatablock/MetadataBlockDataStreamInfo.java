@@ -18,9 +18,12 @@
  */
 package org.jaudiotagger.audio.flac.metadatablock;
 
+import org.jaudiotagger.audio.generic.Utils;
+
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
 /**
@@ -54,58 +57,68 @@ public class MetadataBlockDataStreamInfo  implements MetadataBlockData
     // Logger Object
     public static Logger logger = Logger.getLogger("org.jaudiotagger.audio.flac.MetadataBlockDataStreamInfo");
 
-    private int minBlockSize, maxBlockSize, minFrameSize, maxFrameSize, samplingRate, samplingRatePerChannel, bitsPerSample, channelNumber, totalNumberOfSamples;
-    private float songLength;
+    private int minBlockSize, maxBlockSize, minFrameSize, maxFrameSize, samplingRate, samplingRatePerChannel, bitsPerSample, noOfChannels, noOfSamples;
+    private float trackLength;
     private String md5;
     private boolean isValid = true;
 
     private ByteBuffer rawdata;
 
-    public MetadataBlockDataStreamInfo(MetadataBlockHeader header, RandomAccessFile raf) throws IOException
+    public MetadataBlockDataStreamInfo(MetadataBlockHeader header, FileChannel fc) throws IOException
     {
         rawdata = ByteBuffer.allocate(header.getDataLength());
-        int bytesRead = raf.getChannel().read(rawdata);
+        rawdata.order(ByteOrder.BIG_ENDIAN);
+        int bytesRead = fc.read(rawdata);
         if (bytesRead < header.getDataLength())
         {
-            throw new IOException("Unable to read required number of databytes read:" + bytesRead + ":required:" + header.getDataLength());
+            throw new IOException("Unable to read required number of bytes, read:" + bytesRead + ":required:" + header.getDataLength());
         }
+        rawdata.flip();
+
+        minBlockSize    = Utils.u(rawdata.getShort());
+        maxBlockSize    = Utils.u(rawdata.getShort());
+        minFrameSize    = readThreeByteInteger(rawdata.get(), rawdata.get(), rawdata.get());
+        maxFrameSize    = readThreeByteInteger(rawdata.get(), rawdata.get(), rawdata.get());
+        samplingRate    = readSamplingRate();
+        noOfChannels    = readNoOfChannels();
+        bitsPerSample   = readBitsPerSample();
+        noOfSamples     = readTotalNumberOfSamples();
+        md5             = readMd5();
+        trackLength     = (float) ((double) noOfSamples / samplingRate);
+        samplingRatePerChannel = samplingRate / noOfChannels;
         rawdata.rewind();
+    }
 
-        minBlockSize = rawdata.getShort();
-        maxBlockSize = rawdata.getShort();
-        minFrameSize = readThreeByteInteger(rawdata.get(), rawdata.get(), rawdata.get());
-        maxFrameSize = readThreeByteInteger(rawdata.get(), rawdata.get(), rawdata.get());
+    private final static char[] hexArray = "0123456789abcdef".toCharArray();
 
-        samplingRate = readSamplingRate(rawdata.get(), rawdata.get(), rawdata.get());
-        channelNumber = ((u(rawdata.get(12)) & 0x0E) >>> 1) + 1;
-        samplingRatePerChannel = samplingRate / channelNumber;
-        bitsPerSample = ((u(rawdata.get(12)) & 0x01) << 4) + ((u(rawdata.get(13)) & 0xF0) >>> 4) + 1;
+    private String readMd5()
+    {
+        char[] hexChars = new char[32]; // MD5 is always 32 characters
 
-        totalNumberOfSamples = readTotalNumberOfSamples(rawdata.get(13), rawdata.get(14), rawdata.get(15), rawdata.get(16), rawdata.get(17));
-
-        StringBuilder sb = new StringBuilder();
-        for(int i=18;i<34;i++) 
-        { 
-            byte dataByte = rawdata.get(i); 
-            sb.append(String.format("%x",dataByte)); 
+        if(rawdata.limit()>=34)
+        {
+            for (int i = 0; i < 16; i++)
+            {
+                int v = rawdata.get(i + 18) & 0xFF; // Offset 18
+                hexChars[i * 2] = hexArray[v >>> 4];
+                hexChars[i * 2 + 1] = hexArray[v & 0x0F];
+            }
         }
-        md5 = sb.toString();
-        
-        songLength = (float) ((double) totalNumberOfSamples / samplingRate);
-        logger.config(this.toString());
+
+        return new String(hexChars);
     }
 
     /**
      * @return the rawdata as it will be written to file
      */
-    public byte[] getBytes()
+    public ByteBuffer getBytes()
     {
-        return rawdata.array();
+        return rawdata;
     }
 
     public int getLength()
     {
-        return getBytes().length;
+        return rawdata.limit();
     }
 
     
@@ -113,23 +126,18 @@ public class MetadataBlockDataStreamInfo  implements MetadataBlockData
     public String toString()
     {
 
-        return "MinBlockSize:" + minBlockSize + "MaxBlockSize:" + maxBlockSize + "MinFrameSize:" + minFrameSize + "MaxFrameSize:" + maxFrameSize + "SampleRateTotal:" + samplingRate + "SampleRatePerChannel:" + samplingRatePerChannel + ":Channel number:" + channelNumber + ":Bits per sample: " + bitsPerSample + ":TotalNumberOfSamples: " + totalNumberOfSamples + ":Length: " + songLength;
+        return "MinBlockSize:" + minBlockSize + "MaxBlockSize:" + maxBlockSize + "MinFrameSize:" + minFrameSize + "MaxFrameSize:" + maxFrameSize + "SampleRateTotal:" + samplingRate + "SampleRatePerChannel:" + samplingRatePerChannel + ":Channel number:" + noOfChannels + ":Bits per sample: " + bitsPerSample + ":TotalNumberOfSamples: " + noOfSamples + ":Length: " + trackLength;
 
-    }
-
-    public int getSongLength()
-    {
-        return (int) songLength;
     }
 
     public float getPreciseLength()
     {
-        return songLength;
+        return trackLength;
     }
 
-    public int getChannelNumber()
+    public int getNoOfChannels()
     {
-        return channelNumber;
+        return noOfChannels;
     }
 
     public int getSamplingRate()
@@ -152,6 +160,11 @@ public class MetadataBlockDataStreamInfo  implements MetadataBlockData
     	return bitsPerSample;
     }
 
+    public long getNoOfSamples()
+    {
+        return noOfSamples;
+    }
+
     public String getMD5Signature()
     {
         return md5;
@@ -162,33 +175,56 @@ public class MetadataBlockDataStreamInfo  implements MetadataBlockData
         return isValid;
     }
 
+    /**
+     * SOme values are stored as 3 byte integrals (instead of the more usual 2 or 4)
+     *
+     * @param b1
+     * @param b2
+     * @param b3
+     * @return
+     */
     private int readThreeByteInteger(byte b1, byte b2, byte b3)
     {
-        int rate = (u(b1) << 16) + (u(b2) << 8) + (u(b3));
+        int rate = (Utils.u(b1) << 16) + (Utils.u(b2) << 8) + (Utils.u(b3));
         return rate;
     }
 
-    //TODO this code seems to be give a sampling rate over 21 bytes instead of 20 bytes but attempt to change
-    //to 21 bytes give wrong value
-    private int readSamplingRate(byte b1, byte b2, byte b3)
+    /**
+     * Sampling rate is stored over 20 bits bytes 10 and 11 and half of bytes 12 so have to mask third one
+     *
+     * @return
+     */
+    private int readSamplingRate()
     {
-        int rate = (u(b1) << 12) + (u(b2) << 4) + ((u(b3) & 0xF0) >>> 4);
+        int rate = (Utils.u(rawdata.get(10)) << 12) + (Utils.u(rawdata.get(11)) << 4) + ((Utils.u(rawdata.get(12)) & 0xF0) >>> 4);
         return rate;
-
     }
 
-    private int readTotalNumberOfSamples(byte b1, byte b2, byte b3, byte b4, byte b5)
+    /**
+    Stored in 5th to 7th bits of byte 12
+     */
+    private int readNoOfChannels()
     {
-        int nb = u(b5);
-        nb += u(b4) << 8;
-        nb += u(b3) << 16;
-        nb += u(b2) << 24;
-        nb += (u(b1) & 0x0F) << 32;
+        return ((Utils.u(rawdata.get(12)) & 0x0E) >>> 1) + 1;
+    }
+
+    /** Stored in last bit of byte 12 and first 4 bits of byte 13 */
+    private int readBitsPerSample()
+    {
+        return ((Utils.u(rawdata.get(12)) & 0x01) << 4) + ((Utils.u(rawdata.get(13)) & 0xF0) >>> 4) + 1;
+    }
+
+    /** Stored in second half of byte 13 plus bytes 14 - 17
+     *
+     * @return
+     */
+    private int readTotalNumberOfSamples()
+    {
+        int nb = Utils.u(rawdata.get(17));
+        nb += Utils.u(rawdata.get(16)) << 8;
+        nb += Utils.u(rawdata.get(15)) << 16;
+        nb += Utils.u(rawdata.get(14)) << 24;
+        nb += (Utils.u(rawdata.get(13)) & 0x0F) << 32;
         return nb;
-    }
-
-    private int u(int i)
-    {
-        return i & 0xFF;
     }
 }

@@ -8,12 +8,10 @@ import java.io.IOException;
 /**
  * Get appropriate Artwork class
  */
-public class ArtworkFactory
-{
+public class ArtworkFactory {
 
 
-    public static Artwork getNew()
-    {
+    public static Artwork getNew() {
         return new AndroidArtwork();
     }
 
@@ -23,8 +21,7 @@ public class ArtworkFactory
      * @param coverArt
      * @return
      */
-    public static Artwork createArtworkFromMetadataBlockDataPicture(MetadataBlockDataPicture coverArt)
-    {
+    public static Artwork createArtworkFromMetadataBlockDataPicture(MetadataBlockDataPicture coverArt) {
         return AndroidArtwork.createArtworkFromMetadataBlockDataPicture(coverArt);
     }
 
@@ -35,8 +32,7 @@ public class ArtworkFactory
      * @return
      * @throws IOException
      */
-    public static Artwork createArtworkFromFile(File file) throws IOException
-    {
+    public static Artwork createArtworkFromFile(File file) throws IOException {
         return AndroidArtwork.createArtworkFromFile(file);
     }
 
@@ -47,8 +43,7 @@ public class ArtworkFactory
      * @return
      * @throws IOException
      */
-    public static Artwork createLinkedArtworkFromURL(String link) throws IOException
-    {
+    public static Artwork createLinkedArtworkFromURL(String link) throws IOException {
         return AndroidArtwork.createLinkedArtworkFromURL(link);
     }
 }

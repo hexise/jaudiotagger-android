@@ -31,42 +31,46 @@ import java.math.BigInteger;
  * This class reads the chunk containing encoding data <br>
  * <b>Warning:<b><br>
  * Implementation is not completed. More analysis of this chunk is needed.
- * 
+ *
  * @author Christian Laireiter
  */
-class EncryptionChunkReader implements ChunkReader {
+class EncryptionChunkReader implements ChunkReader
+{
 
     /**
      * The GUID this reader {@linkplain #getApplyingIds() applies to}
      */
-    private final static GUID[] APPLYING = { GUID.GUID_CONTENT_ENCRYPTION };
+    private final static GUID[] APPLYING = {GUID.GUID_CONTENT_ENCRYPTION};
 
     /**
      * Should not be used for now.
      */
-    protected EncryptionChunkReader() {
+    protected EncryptionChunkReader()
+    {
         // NOTHING toDo
     }
 
     /**
      * {@inheritDoc}
      */
-    public boolean canFail() {
+    public boolean canFail()
+    {
         return false;
     }
 
     /**
      * {@inheritDoc}
      */
-    public GUID[] getApplyingIds() {
+    public GUID[] getApplyingIds()
+    {
         return APPLYING.clone();
     }
 
     /**
      * {@inheritDoc}
      */
-    public Chunk read(final GUID guid, final InputStream stream,
-            final long chunkStart) throws IOException {
+    public Chunk read(final GUID guid, final InputStream stream, final long chunkStart) throws IOException
+    {
         EncryptionChunk result;
         final BigInteger chunkLen = Utils.readBig64(stream);
         result = new EncryptionChunk(chunkLen);

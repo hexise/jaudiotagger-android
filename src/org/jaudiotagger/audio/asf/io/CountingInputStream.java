@@ -9,10 +9,11 @@ import java.io.InputStream;
  * So at each time, with {@link #getReadCount()} one can determine how many
  * bytes have been read, by this classes read and skip methods (mark and reset
  * are also taken into account).<br>
- * 
+ *
  * @author Christian Laireiter
  */
-class CountingInputStream extends FilterInputStream {
+class CountingInputStream extends FilterInputStream
+{
 
     /**
      * If {@link #mark(int)} has been called, the current value of
@@ -27,11 +28,11 @@ class CountingInputStream extends FilterInputStream {
 
     /**
      * Creates an instance, which delegates the commands to the given stream.
-     * 
-     * @param stream
-     *            stream to actually work with.
+     *
+     * @param stream stream to actually work with.
      */
-    public CountingInputStream(final InputStream stream) {
+    public CountingInputStream(final InputStream stream)
+    {
         super(stream);
         this.markPos = 0;
         this.readCount = 0;
@@ -39,11 +40,11 @@ class CountingInputStream extends FilterInputStream {
 
     /**
      * Counts the given amount of bytes.
-     * 
-     * @param amountRead
-     *            number of bytes to increase.
+     *
+     * @param amountRead number of bytes to increase.
      */
-    private synchronized void bytesRead(final long amountRead) {
+    private synchronized void bytesRead(final long amountRead)
+    {
         if (amountRead >= 0)
         {
             this.readCount += amountRead;
@@ -53,7 +54,8 @@ class CountingInputStream extends FilterInputStream {
     /**
      * @return the readCount
      */
-    public synchronized long getReadCount() {
+    public synchronized long getReadCount()
+    {
         return this.readCount;
     }
 
@@ -61,7 +63,8 @@ class CountingInputStream extends FilterInputStream {
      * {@inheritDoc}
      */
     @Override
-    public synchronized void mark(final int readlimit) {
+    public synchronized void mark(final int readlimit)
+    {
         super.mark(readlimit);
         this.markPos = this.readCount;
     }
@@ -70,7 +73,8 @@ class CountingInputStream extends FilterInputStream {
      * {@inheritDoc}
      */
     @Override
-    public int read() throws IOException {
+    public int read() throws IOException
+    {
         final int result = super.read();
         bytesRead(1);
         return result;
@@ -80,8 +84,8 @@ class CountingInputStream extends FilterInputStream {
      * {@inheritDoc}
      */
     @Override
-    public int read(final byte[] destination, final int off, final int len)
-            throws IOException {
+    public int read(final byte[] destination, final int off, final int len) throws IOException
+    {
         final int result = super.read(destination, off, len);
         bytesRead(result);
         return result;
@@ -91,9 +95,11 @@ class CountingInputStream extends FilterInputStream {
      * {@inheritDoc}
      */
     @Override
-    public synchronized void reset() throws IOException {
+    public synchronized void reset() throws IOException
+    {
         super.reset();
-        synchronized (this) {
+        synchronized (this)
+        {
             this.readCount = this.markPos;
         }
     }
@@ -102,7 +108,8 @@ class CountingInputStream extends FilterInputStream {
      * {@inheritDoc}
      */
     @Override
-    public long skip(final long amount) throws IOException {
+    public long skip(final long amount) throws IOException
+    {
         final long skipped = super.skip(amount);
         bytesRead(skipped);
         return skipped;

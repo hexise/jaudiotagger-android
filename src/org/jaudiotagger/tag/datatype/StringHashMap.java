@@ -24,12 +24,14 @@
 package org.jaudiotagger.tag.datatype;
 
 import org.jaudiotagger.tag.id3.AbstractTagFrameBody;
-import org.jaudiotagger.tag.id3.valuepair.TextEncoding;
 import org.jaudiotagger.tag.reference.Languages;
 
+import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeSet;
+
+import static org.jaudiotagger.StandardCharsets.ISO_8859_1;
 
 
 /**
@@ -204,11 +206,7 @@ public class StringHashMap extends StringFixedLength implements HashMapInterface
      */
     public String toString()
     {
-        if (value == null)
-        {
-            return "";
-        }
-        else if (keyToValue.get(value) == null)
+        if (value == null || keyToValue.get(value) == null)
         {
             return "";
         }
@@ -221,8 +219,8 @@ public class StringHashMap extends StringFixedLength implements HashMapInterface
     /**
      * @return the ISO_8859 encoding for Datatypes of this type
      */
-    protected String getTextEncodingCharSet()
+    protected Charset getTextEncodingCharSet()
     {
-        return TextEncoding.CHARSET_ISO_8859_1;
+        return ISO_8859_1;
     }
 }

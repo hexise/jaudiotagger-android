@@ -29,42 +29,46 @@ import java.math.BigInteger;
 
 /**
  * Reads and interprets the data of the file header. <br>
- * 
+ *
  * @author Christian Laireiter
  */
-public class FileHeaderReader implements ChunkReader {
+public class FileHeaderReader implements ChunkReader
+{
 
     /**
      * The GUID this reader {@linkplain #getApplyingIds() applies to}
      */
-    private final static GUID[] APPLYING = { GUID.GUID_FILE };
+    private final static GUID[] APPLYING = {GUID.GUID_FILE};
 
     /**
      * Should not be used for now.
      */
-    protected FileHeaderReader() {
+    protected FileHeaderReader()
+    {
         // NOTHING toDo
     }
 
     /**
      * {@inheritDoc}
      */
-    public boolean canFail() {
+    public boolean canFail()
+    {
         return false;
     }
 
     /**
      * {@inheritDoc}
      */
-    public GUID[] getApplyingIds() {
+    public GUID[] getApplyingIds()
+    {
         return APPLYING.clone();
     }
 
     /**
      * {@inheritDoc}
      */
-    public Chunk read(final GUID guid, final InputStream stream,
-            final long chunkStart) throws IOException {
+    public Chunk read(final GUID guid, final InputStream stream, final long chunkStart) throws IOException
+    {
         final BigInteger chunkLen = Utils.readBig64(stream);
         // Skip client GUID.
         stream.skip(16);
@@ -84,9 +88,7 @@ public class FileHeaderReader implements ChunkReader {
         final long maxPkgSize = Utils.readUINT32(stream);
         final long uncompressedFrameSize = Utils.readUINT32(stream);
 
-        final FileHeader result = new FileHeader(chunkLen, fileSize, fileTime,
-                packageCount, duration, timeStartPos, timeEndPos, flags,
-                minPkgSize, maxPkgSize, uncompressedFrameSize);
+        final FileHeader result = new FileHeader(chunkLen, fileSize, fileTime, packageCount, duration, timeStartPos, timeEndPos, flags, minPkgSize, maxPkgSize, uncompressedFrameSize);
         result.setPosition(chunkStart);
         return result;
     }

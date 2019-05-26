@@ -40,7 +40,9 @@ public class FlacTagCreator extends AbstractTagCreator
     // Logger Object
     public static Logger logger = Logger.getLogger("org.jaudiotagger.audio.flac");
 
+    //TODO make an option
     public static final int DEFAULT_PADDING = 4000;
+
     private static final VorbisCommentCreator creator = new VorbisCommentCreator();
 
     /**
@@ -63,7 +65,7 @@ public class FlacTagCreator extends AbstractTagCreator
         }
         for (MetadataBlockDataPicture image : flacTag.getImages())
         {
-            tagLength += image.getBytes().length + MetadataBlockHeader.HEADER_LENGTH;
+            tagLength += image.getBytes().limit() + MetadataBlockHeader.HEADER_LENGTH;
         }
 
         logger.config("Convert flac tag:taglength:" + tagLength);

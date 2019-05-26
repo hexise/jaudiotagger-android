@@ -1,7 +1,5 @@
 package org.jaudiotagger.tag.mp4.field;
 
-import org.jaudiotagger.tag.mp4.Mp4FieldKey;
-
 import java.util.EnumSet;
 import java.util.HashMap;
 

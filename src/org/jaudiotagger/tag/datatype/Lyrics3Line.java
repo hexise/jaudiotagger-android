@@ -23,7 +23,7 @@
  */
 package org.jaudiotagger.tag.datatype;
 
-import org.jaudiotagger.audio.generic.Utils;
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.tag.InvalidDataTypeException;
 import org.jaudiotagger.tag.id3.AbstractTagFrameBody;
 
@@ -223,6 +223,6 @@ public class Lyrics3Line extends AbstractDataType
 
     public byte[] writeByteArray()
     {
-        return Utils.getDefaultBytes(writeString(), "ISO8859-1");
+        return writeString().getBytes(StandardCharsets.ISO_8859_1);
     }
 }

@@ -1,7 +1,9 @@
 package org.jaudiotagger.tag.datatype;
 
 /**
- * A pair
+ * A pair of values
+ *
+ * USed by TIPL, TMCL and IPLS frames that store pairs of values
  */
 public class Pair
 {
@@ -32,5 +34,10 @@ public class Pair
     public void setValue(String value)
     {
         this.value = value;
+    }
+
+    public String getPairValue()
+    {
+        return getKey() + '\0' + getValue();
     }
 }

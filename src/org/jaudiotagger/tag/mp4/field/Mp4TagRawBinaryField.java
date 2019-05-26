@@ -1,5 +1,6 @@
 package org.jaudiotagger.tag.mp4.field;
 
+import org.jaudiotagger.StandardCharsets;
 import org.jaudiotagger.audio.generic.Utils;
 import org.jaudiotagger.audio.mp4.atom.Mp4BoxHeader;
 import org.jaudiotagger.tag.TagField;
@@ -28,7 +29,7 @@ public class Mp4TagRawBinaryField extends Mp4TagField
      *
      * @param header
      * @param raw
-     * @throws java.io.UnsupportedEncodingException
+     * @throws UnsupportedEncodingException
      *
      */
     public Mp4TagRawBinaryField(Mp4BoxHeader header, ByteBuffer raw) throws UnsupportedEncodingException
@@ -47,7 +48,7 @@ public class Mp4TagRawBinaryField extends Mp4TagField
      * Used when creating raw content
      *
      * @return
-     * @throws java.io.UnsupportedEncodingException
+     * @throws UnsupportedEncodingException
      *
      */
     protected byte[] getDataBytes() throws UnsupportedEncodingException
@@ -111,7 +112,7 @@ public class Mp4TagRawBinaryField extends Mp4TagField
         {
             ByteArrayOutputStream outerbaos = new ByteArrayOutputStream();
             outerbaos.write(Utils.getSizeBEInt32(Mp4BoxHeader.HEADER_LENGTH + dataSize));
-            outerbaos.write(Utils.getDefaultBytes(getId(), "ISO-8859-1"));
+            outerbaos.write(getId().getBytes(StandardCharsets.ISO_8859_1));
             outerbaos.write(dataBytes);
             return outerbaos.toByteArray();
         }

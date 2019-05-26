@@ -7,6 +7,8 @@ import org.jaudiotagger.audio.mp4.Mp4AtomIdentifier;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 
 /**
  * StcoBox ( media (stream) header), holds offsets into the Audio data
@@ -37,16 +39,15 @@ public class Mp4StcoBox extends AbstractMp4Box
 
         //Make a slice of databuffer then we can work with relative or absolute methods safetly
         dataBuffer = buffer.slice();
-
+        dataBuffer.order(ByteOrder.BIG_ENDIAN);
         //Skip the flags
         dataBuffer.position(dataBuffer.position() + VERSION_FLAG_LENGTH + OTHER_FLAG_LENGTH);
 
         //No of offsets
-        this.noOfOffSets = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + NO_OF_OFFSETS_LENGTH - 1));
-        dataBuffer.position(dataBuffer.position() + NO_OF_OFFSETS_LENGTH);
+        this.noOfOffSets = dataBuffer.getInt();
 
         //First Offset, useful for sanity checks
-        firstOffSet = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + OFFSET_LENGTH - 1));
+        firstOffSet = dataBuffer.getInt();
     }
 
     public void printTotalOffset()
@@ -66,19 +67,17 @@ public class Mp4StcoBox extends AbstractMp4Box
     /**
      * Show All offsets, useful for debugging
      */
-    public void printAlloffsets()
+    public void printAllOffsets()
     {
         System.out.println("Print Offsets:start");
         dataBuffer.rewind();
         dataBuffer.position(VERSION_FLAG_LENGTH + OTHER_FLAG_LENGTH + NO_OF_OFFSETS_LENGTH);
         for (int i = 0; i < noOfOffSets - 1; i++)
         {
-            int offset = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + OFFSET_LENGTH - 1));
+            int offset = dataBuffer.getInt();
             System.out.println("offset into audio data is:" + offset);
-
-            dataBuffer.position(dataBuffer.position() + OFFSET_LENGTH);
         }
-        int offset = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + OFFSET_LENGTH - 1));
+        int offset = dataBuffer.getInt();
         System.out.println("offset into audio data is:" + offset);
         System.out.println("Print Offsets:end");
 
@@ -91,11 +90,12 @@ public class Mp4StcoBox extends AbstractMp4Box
         dataBuffer.position(dataBuffer.position() + VERSION_FLAG_LENGTH + OTHER_FLAG_LENGTH + NO_OF_OFFSETS_LENGTH);
         for (int i = 0; i < noOfOffSets; i++)
         {
-            int offset = Utils.getIntBE(dataBuffer, dataBuffer.position(), (dataBuffer.position() + NO_OF_OFFSETS_LENGTH - 1));
+            int offset = dataBuffer.getInt();
 
             //Calculate new offset and update buffer
             offset = offset + adjustment;
-            dataBuffer.put(Utils.getSizeBEInt32(offset));
+            dataBuffer.position(dataBuffer.position() - OFFSET_LENGTH);
+            dataBuffer.putInt(offset);
         }
     }
 
@@ -150,15 +150,16 @@ public class Mp4StcoBox extends AbstractMp4Box
         return firstOffSet;
     }
 
-    public static void debugShowStcoInfo(RandomAccessFile raf) throws IOException, CannotReadException
+    public static Mp4StcoBox getStco(RandomAccessFile raf) throws IOException, CannotReadException
     {
-        Mp4BoxHeader moovHeader = Mp4BoxHeader.seekWithinLevel(raf, Mp4AtomIdentifier.MOOV.getFieldName());
+        FileChannel fc = raf.getChannel();
+        Mp4BoxHeader moovHeader = Mp4BoxHeader.seekWithinLevel(fc, Mp4AtomIdentifier.MOOV.getFieldName());
         if (moovHeader == null)
         {
             throw new CannotReadException("This file does not appear to be an audio file");
         }
         ByteBuffer moovBuffer = ByteBuffer.allocate(moovHeader.getLength() - Mp4BoxHeader.HEADER_LENGTH);
-        raf.getChannel().read(moovBuffer);
+        fc.read(moovBuffer);
         moovBuffer.rewind();
 
         //Level 2-Searching for "mvhd" somewhere within "moov", we make a slice after finding header
@@ -225,6 +226,12 @@ public class Mp4StcoBox extends AbstractMp4Box
             throw new CannotReadException("This file does not appear to be an audio file");
         }
         Mp4StcoBox stco = new Mp4StcoBox(boxHeader, mvhdBuffer);
-        stco.printAlloffsets();
+        return stco;
+    }
+
+    public static void debugShowStcoInfo(RandomAccessFile raf) throws IOException, CannotReadException
+    {
+        Mp4StcoBox stco = getStco(raf);
+        stco.printAllOffsets();
     }
 }
