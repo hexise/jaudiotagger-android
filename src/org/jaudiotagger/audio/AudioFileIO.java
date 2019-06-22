@@ -234,8 +234,8 @@ public class AudioFileIO
 
     // These tables contains all the readers/writers associated with extension
     // as a key
-    private Map<String, AudioFileReader> readers = new HashMap<String, AudioFileReader>();
-    private Map<String, AudioFileWriter> writers = new HashMap<String, AudioFileWriter>();
+    public Map<String, AudioFileReader> readers = new HashMap<String, AudioFileReader>();
+    public Map<String, AudioFileWriter> writers = new HashMap<String, AudioFileWriter>();
 
 
     /**

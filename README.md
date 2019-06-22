@@ -44,7 +44,7 @@ For more information about Jaudiotagger, please refer to this link: http://www.j
    
 - Java nio API calls are refactored:
 
-   - The try-with-resources statements are replaced with streams, file channel and manually resource releasing.
+   - The try-with-resources statements are replaced with RandomAccessFile, file channel and manually resource releasing.
    - Usages of java.nio.file.Path are replaced by java.io.File.
    - org.jaudiotagger.audio.generic.Permissions and its references are removed.
    - References to java.nio.charset.StandardCharsets are replaced with org.jaudiotagger.StandardCharsets.

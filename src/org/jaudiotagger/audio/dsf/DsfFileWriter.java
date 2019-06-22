@@ -35,10 +35,10 @@ import java.nio.channels.FileChannel;
 public class DsfFileWriter extends AudioFileWriter2 {
 
     protected void writeTag(Tag tag, File file) throws CannotWriteException {
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             DsdChunk dsd = DsdChunk.readChunk(Utils.readFileDataIntoBufferLE(fc, DsdChunk.DSD_HEADER_LENGTH));
             if (dsd != null) {
                 if (dsd.getMetadataOffset() > 0) {
@@ -66,7 +66,7 @@ public class DsfFileWriter extends AudioFileWriter2 {
         } catch (IOException ioe) {
             throw new CannotWriteException(ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 
@@ -118,10 +118,10 @@ public class DsfFileWriter extends AudioFileWriter2 {
      */
     @Override
     protected void deleteTag(Tag tag, File file) throws CannotWriteException {
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             DsdChunk dsd = DsdChunk.readChunk(Utils.readFileDataIntoBufferLE(fc, DsdChunk.DSD_HEADER_LENGTH));
             if (dsd != null) {
                 if (dsd.getMetadataOffset() > 0) {
@@ -142,7 +142,7 @@ public class DsfFileWriter extends AudioFileWriter2 {
         } catch (IOException ioe) {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 

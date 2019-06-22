@@ -26,8 +26,8 @@ import org.jaudiotagger.audio.flac.metadatablock.MetadataBlockHeader;
 import org.jaudiotagger.audio.generic.Utils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.logging.Logger;
 
@@ -41,10 +41,10 @@ public class FlacInfoReader {
 
     public FlacAudioHeader read(File file) throws CannotReadException, IOException {
         logger.config(file.getPath() + ":start");
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(file, "r");
+            FileChannel fc = raf.getChannel();
             FlacStreamReader flacStream = new FlacStreamReader(fc, file.getPath());
             flacStream.findStream();
 
@@ -90,7 +90,7 @@ public class FlacInfoReader {
             info.setBitRate(computeBitrate(info.getAudioDataLength(), mbdsi.getPreciseLength()));
             return info;
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 
@@ -107,10 +107,10 @@ public class FlacInfoReader {
      * @throws IOException
      */
     public int countMetaBlocks(File f) throws CannotReadException, IOException {
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(f);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(f, "r");
+            FileChannel fc = raf.getChannel();
             FlacStreamReader flacStream = new FlacStreamReader(fc, f.getPath() + " ");
             flacStream.findStream();
 
@@ -126,7 +126,7 @@ public class FlacInfoReader {
             }
             return count;
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 }

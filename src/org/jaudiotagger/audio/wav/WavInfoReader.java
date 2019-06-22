@@ -30,8 +30,8 @@ import org.jaudiotagger.audio.wav.chunk.WavFormatChunk;
 import org.jaudiotagger.logging.Hex;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -52,10 +52,10 @@ public class WavInfoReader {
 
     public GenericAudioHeader read(File file) throws CannotReadException, IOException {
         GenericAudioHeader info = new GenericAudioHeader();
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(file, "r");
+            FileChannel fc = raf.getChannel();
             if (WavRIFFHeader.isValidHeader(fc)) {
                 while (fc.position() < fc.size()) {
                     if (!readChunk(fc, info)) {
@@ -66,7 +66,7 @@ public class WavInfoReader {
                 throw new CannotReadException(loggingName + " Wav RIFF Header not valid");
             }
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
         calculateTrackLength(info);
         return info;

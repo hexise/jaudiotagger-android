@@ -126,10 +126,10 @@ public class WavTagWriter {
      */
     public void delete(Tag tag, File file) throws CannotWriteException {
         logger.info(loggingName + " Deleting metadata from file");
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             WavTag existingTag = getExistingMetadata(file);
 
             //have both tags
@@ -208,7 +208,7 @@ public class WavTagWriter {
         } catch (IOException ioe) {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 
@@ -287,10 +287,10 @@ public class WavTagWriter {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         }
 
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             final WavTag wavTag = (WavTag) tag;
             if (wso == WavSaveOptions.SAVE_BOTH) {
                 saveBoth(wavTag, fc, existingTag);
@@ -313,7 +313,7 @@ public class WavTagWriter {
         } catch (IOException ioe) {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 

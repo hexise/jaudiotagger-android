@@ -18,8 +18,8 @@ import org.jaudiotagger.tag.id3.ID3v23Tag;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.logging.Level;
@@ -37,10 +37,10 @@ public class DsfFileReader extends AudioFileReader2 {
 
     @Override
     protected GenericAudioHeader getEncodingInfo(File file) throws CannotReadException, IOException {
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(file, "r");
+            FileChannel fc = raf.getChannel();
             DsdChunk dsd = DsdChunk.readChunk(Utils.readFileDataIntoBufferLE(fc, DsdChunk.DSD_HEADER_LENGTH));
             if (dsd != null) {
                 ByteBuffer fmtChunkBuffer = Utils.readFileDataIntoBufferLE(fc, IffHeaderChunk.SIGNATURE_LENGTH + CHUNKSIZE_LENGTH);
@@ -54,16 +54,16 @@ public class DsfFileReader extends AudioFileReader2 {
                 throw new CannotReadException(file + " Not a valid dsf file. Content does not start with 'DSD '");
             }
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 
     @Override
     protected Tag getTag(File file) throws CannotReadException, IOException {
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(file, "r");
+            FileChannel fc = raf.getChannel();
             DsdChunk dsd = DsdChunk.readChunk(Utils.readFileDataIntoBufferLE(fc, DsdChunk.DSD_HEADER_LENGTH));
             if (dsd != null) {
                 return readTag(fc, dsd, file.toString());
@@ -71,7 +71,7 @@ public class DsfFileReader extends AudioFileReader2 {
                 throw new CannotReadException(file + " Not a valid dsf file. Content does not start with 'DSD '.");
             }
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 

@@ -14,8 +14,8 @@ import org.jaudiotagger.logging.Hex;
 import org.jaudiotagger.tag.aiff.AiffTag;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -37,10 +37,10 @@ public class AiffTagReader extends AiffChunkReader {
      * @throws IOException
      */
     public AiffTag read(File file) throws CannotReadException, IOException {
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(file, "r");
+            FileChannel fc = raf.getChannel();
             AiffAudioHeader aiffAudioHeader = new AiffAudioHeader();
             AiffTag aiffTag = new AiffTag();
 
@@ -58,7 +58,7 @@ public class AiffTagReader extends AiffChunkReader {
             }
             return aiffTag;
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 

@@ -29,8 +29,8 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentReader;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -49,10 +49,10 @@ public class FlacTagReader {
 
 
     public FlacTag read(File file) throws CannotReadException, IOException {
-        FileInputStream in = null;
+        RandomAccessFile raf = null;
         try {
-            in = new FileInputStream(file);
-            FileChannel fc = in.getChannel();
+            raf = new RandomAccessFile(file, "r");
+            FileChannel fc = raf.getChannel();
             FlacStreamReader flacStream = new FlacStreamReader(fc, file.getPath());
             flacStream.findStream();
 
@@ -122,7 +122,7 @@ public class FlacTagReader {
             FlacTag flacTag = new FlacTag(tag, images);
             return flacTag;
         } finally {
-            AudioFileIO.closeQuietly(in);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 }

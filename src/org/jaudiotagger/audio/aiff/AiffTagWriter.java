@@ -116,10 +116,10 @@ public class AiffTagWriter {
      * @throws org.jaudiotagger.audio.exceptions.CannotWriteException
      */
     public void delete(final Tag tag, File file) throws CannotWriteException {
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             logger.severe(file + " Deleting tag from file");
             final AiffTag existingTag = getExistingMetadata(file);
 
@@ -138,7 +138,7 @@ public class AiffTagWriter {
         } catch (IOException ioe) {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 
@@ -252,10 +252,10 @@ public class AiffTagWriter {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         }
 
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             long existingFileLength = fc.size();
 
             final AiffTag aiffTag = (AiffTag) tag;
@@ -306,7 +306,7 @@ public class AiffTagWriter {
         } catch (IOException ioe) {
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 

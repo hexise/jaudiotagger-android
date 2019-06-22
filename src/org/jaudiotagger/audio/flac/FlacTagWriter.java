@@ -28,8 +28,8 @@ import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.utils.DirectByteBufferUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -81,10 +81,10 @@ public class FlacTagWriter {
      */
     public void write(Tag tag, File file) throws CannotWriteException {
         logger.config(file + " Writing tag");
-        FileOutputStream out = null;
+        RandomAccessFile raf = null;
         try {
-            out = new FileOutputStream(file);
-            FileChannel fc = out.getChannel();
+            raf = new RandomAccessFile(file, "rw");
+            FileChannel fc = raf.getChannel();
             MetadataBlockInfo blockInfo = new MetadataBlockInfo();
 
             //Read existing data
@@ -184,7 +184,7 @@ public class FlacTagWriter {
             logger.log(Level.SEVERE, ioe.getMessage(), ioe);
             throw new CannotWriteException(file + ":" + ioe.getMessage());
         } finally {
-            AudioFileIO.closeQuietly(out);
+            AudioFileIO.closeQuietly(raf);
         }
     }
 
