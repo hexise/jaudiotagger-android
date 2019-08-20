@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 public class WavTag implements Tag, Id3SupportingTag
 {
-    private static final Logger logger = Logger.getLogger(WavTag.class.getPackage().getName());
+    private static final Logger logger = Logger.getLogger(WavTag.class.getName());
     
     private static final String NULL = "\0";
 
